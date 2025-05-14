@@ -1,5 +1,5 @@
 node_modules
-DS_Store
+.DS_Store
 attached_assets
 dloop-ui/.DS_Store
 dloop-ui/node_modules
