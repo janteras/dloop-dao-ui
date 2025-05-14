@@ -1,0 +1,12 @@
+overwrite: true
+schema: ${VITE_SUBGRAPH_URL}
+documents: "client/src/**/*.graphql"
+generates:
+  client/src/graphql/generated.tsx:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typescript-react-query
+    config:
+      fetcher: graphql-request
+      reactQueryVersion: 5

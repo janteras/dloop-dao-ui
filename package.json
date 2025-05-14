@@ -1,0 +1,18 @@
+{
+  "name": "workspace",
+  "version": "1.0.0",
+  "main": "parse_abi.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@react-hook/intersection-observer": "^3.1.2",
+    "@react-hook/size": "^2.1.2",
+    "framer-motion": "^12.11.3",
+    "react-swipeable": "^7.0.2"
+  }
+}
