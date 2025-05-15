@@ -29,16 +29,23 @@ exports.handler = async (event, context) => {
       // Send API keys to the client
       return {
         statusCode: 200,
-        headers,
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           infuraApiKey,
           walletConnectProjectId
         })
       };
     } catch (error) {
+      console.error('config.js error:', error);
       return {
         statusCode: 500,
-        headers,
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ 
           error: 'Failed to retrieve API configuration',
           message: error.message || 'Unknown error'
@@ -50,7 +57,10 @@ exports.handler = async (event, context) => {
   // Default response for unsupported methods
   return {
     statusCode: 405,
-    headers,
+    headers: {
+      ...headers,
+      'Content-Type': 'application/json'
+    },
     body: JSON.stringify({ error: 'Method not allowed' })
   };
 };

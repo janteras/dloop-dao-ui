@@ -11,13 +11,35 @@ export function cn(...inputs: ClassValue[]) {
 /**
  * Formats a wallet address to a shorter version
  * @param address The full wallet address
- * @param chars Number of characters to keep at the beginning and end
+ * @param startChars Number of characters to keep at the beginning
+ * @param endChars Number of characters to keep at the end
+ * @param separator The separator between start and end parts
  * @returns The shortened address
  */
-export function shortenAddress(address: string, chars = 4): string {
+export function shortenAddress(
+  address: string, 
+  startChars = 4, 
+  endChars = 4, 
+  separator = '...'
+): string {
   if (!address) return '';
-  if (address.length <= chars * 2) return address;
-  return `${address.substring(0, chars)}...${address.substring(address.length - chars)}`;
+  if (address.length <= startChars + endChars) return address;
+  return `${address.substring(0, startChars)}${separator}${address.substring(address.length - endChars)}`;
+}
+
+/**
+ * Copies text to clipboard
+ * @param text The text to copy
+ * @returns Promise that resolves when copying is done
+ */
+export async function copyToClipboard(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (error) {
+    console.error('Failed to copy:', error);
+    return false;
+  }
 }
 
 /**

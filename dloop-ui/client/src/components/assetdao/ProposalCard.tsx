@@ -5,8 +5,10 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useWallet } from "@/hooks/useWallet";
 import { Proposal } from "@/types";
-import { shortenAddress } from "@/lib/utils";
+import { shortenAddress, copyToClipboard } from "@/lib/utils";
 import { CountdownTimer } from "@/components/features/shared/countdown-timer";
+import { Copy, Check } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProposalCardProps {
   proposal: Proposal;
@@ -18,6 +20,8 @@ const ProposalCard = ({ proposal, onVote, onExecute }: ProposalCardProps) => {
   const { isConnected } = useWallet();
   const [isVoting, setIsVoting] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
+  const [copyingAddress, setCopyingAddress] = useState<string | null>(null);
+  const { create: createToast } = useToast();
 
   const handleVote = async (support: boolean) => {
     if (!isConnected) return;
@@ -80,10 +84,38 @@ const ProposalCard = ({ proposal, onVote, onExecute }: ProposalCardProps) => {
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray">Proposer</span>
-            <span className="text-white font-medium mono">
+            <span className="text-white font-medium mono flex items-center">
               {proposal.proposer.startsWith('AI.Gov') 
                 ? proposal.proposer 
-                : shortenAddress(proposal.proposer)}
+                : (
+                  <div className="flex items-center space-x-1">
+                    <span className="truncate max-w-[120px] overflow-hidden inline-block align-middle">{shortenAddress(proposal.proposer, 6, 4, '....')}</span>
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        setCopyingAddress(proposal.proposer);
+                        const success = await copyToClipboard(proposal.proposer);
+                        if (success) {
+                          createToast({
+                            title: "Address copied to clipboard",
+                            variant: "default",
+                            duration: 2000,
+                          });
+                          setTimeout(() => setCopyingAddress(null), 1000);
+                        }
+                      }}
+                      className="text-gray hover:text-accent transition-colors ml-1 rounded-md"
+                      aria-label="Copy address"
+                    >
+                      {copyingAddress === proposal.proposer ? (
+                        <Check className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                )
+              }
             </span>
           </div>
           {proposal.status === 'active' ? (
