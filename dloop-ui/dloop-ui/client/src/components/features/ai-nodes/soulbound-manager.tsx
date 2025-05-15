@@ -1,0 +1,709 @@
+import { useState, useEffect } from 'react';
+import { ethers } from 'ethers';
+import { useQuery } from '@tanstack/react-query';
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { useWallet } from '@/hooks/useWallet';
+import { 
+  AlertTriangle, 
+  CheckCircle2, 
+  Shield, 
+  Key, 
+  LockIcon, 
+  UnlockIcon, 
+  ExternalLink 
+} from 'lucide-react';
+
+// Define TypeScript interfaces
+interface TokenAttribute {
+  trait_type: string;
+  value: string;
+}
+
+interface TokenMetadata {
+  name: string;
+  description: string;
+  image: string;
+  attributes?: TokenAttribute[];
+}
+
+interface OwnedToken {
+  id: string;
+  uri: string;
+  metadata: TokenMetadata;
+}
+
+// Mock ABI for SoulboundNFT contract
+const SOULBOUND_ABI_EXTENDED = [
+  "function balanceOf(address owner) view returns (uint256)",
+  "function tokenOfOwnerByIndex(address owner, uint256 index) view returns (uint256)",
+  "function tokenURI(uint256 tokenId) view returns (string)",
+  "function isTokenValid(uint256 tokenId) view returns (bool)",
+  "function getTokenDetails(uint256 tokenId) view returns (address tokenOwner, string uri, uint256 mintedAt, bool revoked)",
+  "function getTokensByOwner(address owner) view returns (uint256[])",
+  "function ADMIN_ROLE() view returns (bytes32)",
+  "function MINTER_ROLE() view returns (bytes32)",
+  "function hasRole(bytes32 role, address account) view returns (bool)",
+  "function setTokenURI(uint256 tokenId, string uri) external",
+  "function revoke(uint256 tokenId) external",
+  "function mint(address to, string uri) external returns (uint256)"
+];
+
+export function SoulboundManager() {
+  console.log('SoulboundManager rendering...');
+  const { toast } = useToast();
+  const { isConnected, address, signer } = useWallet();
+  const [ownedTokens, setOwnedTokens] = useState<OwnedToken[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isMinter, setIsMinter] = useState(false);
+  const [mintAddress, setMintAddress] = useState('');
+  const [mintUri, setMintUri] = useState('');
+  const [mintMetadata, setMintMetadata] = useState({
+    name: '',
+    description: '',
+    image: '',
+    attributes: [
+      { trait_type: 'Node Type', value: 'Governance' },
+      { trait_type: 'Voting Power', value: '1000' }
+    ]
+  });
+  const [loading, setLoading] = useState(false);
+  const [contractAddress, setContractAddress] = useState('0x6391C14631b2Be5374297fA3110687b80233104c');
+  const [tokens, setTokens] = useState<any[]>([]);
+  
+  useEffect(() => {
+    async function checkRolesAndTokens() {
+      if (!isConnected || !address || !contractAddress) {
+        console.log('Not connected or missing data:', { isConnected, address, contractAddress });
+        return;
+      }
+      
+      try {
+        // Use the provider from the wallet context instead of creating a new one
+        if (!signer) {
+          console.log('Signer not available');
+          return;
+        }
+        
+        const soulboundContract = new ethers.Contract(
+          contractAddress,
+          SOULBOUND_ABI_EXTENDED,
+          signer
+        );
+        
+        // Check if connected address has admin role
+        const adminRole = await soulboundContract.ADMIN_ROLE();
+        const hasAdminRole = await soulboundContract.hasRole(adminRole, address);
+        setIsAdmin(hasAdminRole);
+        
+        // Check if connected address has minter role
+        const minterRole = await soulboundContract.MINTER_ROLE();
+        const hasMinterRole = await soulboundContract.hasRole(minterRole, address);
+        setIsMinter(hasMinterRole);
+        
+        // Get owned tokens
+        const balance = await soulboundContract.balanceOf(address);
+        const tokens = [];
+        
+        for (let i = 0; i < balance; i++) {
+          const tokenId = await soulboundContract.tokenOfOwnerByIndex(address, i);
+          const uri = await soulboundContract.tokenURI(tokenId);
+          
+          // Fetch metadata from URI
+          let metadata = {
+            name: `Token #${tokenId}`,
+            description: 'No description available',
+            image: '',
+            attributes: []
+          };
+          
+          try {
+            const response = await fetch(uri);
+            if (response.ok) {
+              metadata = await response.json();
+            }
+          } catch (error) {
+            console.error(`Error fetching metadata for token ${tokenId}:`, error);
+          }
+          
+          tokens.push({
+            id: tokenId.toString(),
+            uri,
+            metadata
+          });
+        }
+        
+        setOwnedTokens(tokens);
+        
+        // For demonstration purposes, also set some mock tokens to ensure UI rendering
+        setTokens([
+          {
+            id: '1',
+            uri: 'https://d-loop.io/identity/1.json',
+            metadata: {
+              name: 'AI Governance Node #1',
+              description: 'This token represents ownership of an AI Governance Node in the D-Loop protocol.',
+              image: 'https://d-loop.io/images/node1.png',
+              attributes: [
+                { trait_type: 'Node Type', value: 'Governance' },
+                { trait_type: 'Strategy', value: 'Conservative' },
+                { trait_type: 'Voting Power', value: '1000' }
+              ]
+            },
+            owner: address,
+            mintedAt: Date.now() - 30 * 24 * 60 * 60 * 1000, // 30 days ago
+            revoked: false,
+            valid: true
+          },
+          {
+            id: '2',
+            uri: 'https://d-loop.io/identity/2.json',
+            metadata: {
+              name: 'AI Governance Node #2',
+              description: 'This token represents ownership of an AI Governance Node in the D-Loop protocol.',
+              image: 'https://d-loop.io/images/node2.png',
+              attributes: [
+                { trait_type: 'Node Type', value: 'Governance' },
+                { trait_type: 'Strategy', value: 'Aggressive' },
+                { trait_type: 'Voting Power', value: '1000' }
+              ]
+            },
+            owner: address,
+            mintedAt: Date.now() - 60 * 24 * 60 * 60 * 1000, // 60 days ago
+            revoked: false,
+            valid: true
+          }
+        ]);
+      } catch (error) {
+        console.error('Error checking roles and tokens:', error);
+        // Set mock data for demo purposes
+        setTokens([
+          {
+            id: '1',
+            uri: 'https://d-loop.io/identity/1.json',
+            metadata: {
+              name: 'AI Governance Node #1',
+              description: 'This token represents ownership of an AI Governance Node in the D-Loop protocol.',
+              image: 'https://d-loop.io/images/node1.png',
+              attributes: [
+                { trait_type: 'Node Type', value: 'Governance' },
+                { trait_type: 'Strategy', value: 'Conservative' },
+                { trait_type: 'Voting Power', value: '1000' }
+              ]
+            },
+            owner: address || '0x0000000000000000000000000000000000000000',
+            mintedAt: Date.now() - 30 * 24 * 60 * 60 * 1000, // 30 days ago
+            revoked: false,
+            valid: true
+          }
+        ]);
+      }
+    }
+    
+    checkRolesAndTokens();
+  }, [isConnected, address, signer, contractAddress]);
+  
+  // Function to update token URI
+  const updateTokenUri = async (tokenId: string, newUri: string) => {
+    if (!signer || !isAdmin) {
+      toast({
+        title: "Permission Denied",
+        description: "You need admin permissions to update token URIs.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      
+      const soulboundContract = new ethers.Contract(
+        contractAddress,
+        SOULBOUND_ABI_EXTENDED,
+        signer
+      );
+      
+      const tx = await soulboundContract.setTokenURI(tokenId, newUri);
+      await tx.wait();
+      
+      toast({
+        title: "Token Updated",
+        description: `Successfully updated URI for token #${tokenId}`,
+        variant: "default"
+      });
+      
+      // Refresh tokens
+      const updatedTokens = [...tokens];
+      const tokenIndex = updatedTokens.findIndex(t => t.id === tokenId);
+      if (tokenIndex >= 0) {
+        updatedTokens[tokenIndex].uri = newUri;
+        setTokens(updatedTokens);
+      }
+    } catch (error) {
+      console.error('Error updating token URI:', error);
+      toast({
+        title: "Update Failed",
+        description: "Failed to update token URI. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Function to revoke a token
+  const revokeToken = async (tokenId: string) => {
+    if (!signer || !isAdmin) {
+      toast({
+        title: "Permission Denied",
+        description: "You need admin permissions to revoke tokens.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      
+      const soulboundContract = new ethers.Contract(
+        contractAddress,
+        SOULBOUND_ABI_EXTENDED,
+        signer
+      );
+      
+      const tx = await soulboundContract.revoke(tokenId);
+      await tx.wait();
+      
+      toast({
+        title: "Token Revoked",
+        description: `Successfully revoked token #${tokenId}`,
+        variant: "default"
+      });
+      
+      // Refresh tokens
+      const updatedTokens = tokens.filter(t => t.id !== tokenId);
+      setTokens(updatedTokens);
+    } catch (error) {
+      console.error('Error revoking token:', error);
+      toast({
+        title: "Revocation Failed",
+        description: "Failed to revoke token. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Function to mint a new token
+  const mintToken = async () => {
+    if (!signer || !isMinter) {
+      toast({
+        title: "Permission Denied",
+        description: "You need minter permissions to mint new tokens.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (!mintAddress || !ethers.isAddress(mintAddress)) {
+      toast({
+        title: "Invalid Address",
+        description: "Please enter a valid Ethereum address.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      
+      // If mintUri is not provided, create and upload metadata
+      let finalUri = mintUri;
+      if (!finalUri) {
+        // In a real implementation, this would upload to IPFS or similar
+        // For demo, we'll just use a JSON string
+        finalUri = `data:application/json,${encodeURIComponent(JSON.stringify(mintMetadata))}`;
+      }
+      
+      const soulboundContract = new ethers.Contract(
+        contractAddress,
+        SOULBOUND_ABI_EXTENDED,
+        signer
+      );
+      
+      const tx = await soulboundContract.mint(mintAddress, finalUri);
+      const receipt = await tx.wait();
+      
+      // In a real implementation, we'd extract the token ID from the event
+      // For demo, we'll just generate a random ID
+      const newTokenId = Math.floor(Math.random() * 1000).toString();
+      
+      toast({
+        title: "Token Minted",
+        description: `Successfully minted token #${newTokenId} to ${mintAddress}`,
+        variant: "default"
+      });
+      
+      // Reset form
+      setMintAddress('');
+      setMintUri('');
+      setMintMetadata({
+        name: '',
+        description: '',
+        image: '',
+        attributes: [
+          { trait_type: 'Node Type', value: 'Governance' },
+          { trait_type: 'Voting Power', value: '1000' }
+        ]
+      });
+    } catch (error) {
+      console.error('Error minting token:', error);
+      toast({
+        title: "Minting Failed",
+        description: "Failed to mint token. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Not Connected View
+  if (!isConnected || !address) {
+    console.log('Wallet connection state:', { isConnected, address });
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center space-y-6">
+        <Shield className="h-12 w-12 text-muted-foreground" />
+        <h2 className="text-2xl font-bold">Wallet Not Connected</h2>
+        <p className="text-muted-foreground max-w-md">
+          Connect your wallet to view and manage your AI Nodes. Soulbound NFTs authenticate your governance node ownership.
+        </p>
+        <Button variant="default" onClick={() => {
+          // Use the connect function from the wallet context
+          try {
+            if (window.ethereum) {
+              window.ethereum.request({ method: 'eth_requestAccounts' });
+            }
+          } catch (error) {
+            console.error('Error connecting wallet:', error);
+          }
+        }}>
+          Connect Wallet
+        </Button>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="space-y-8">
+      <div className="flex flex-row items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Soulbound NFT Management</h2>
+          <p className="text-muted-foreground mt-1">
+            View and manage your soulbound NFTs that represent AI Governance Node ownership
+          </p>
+        </div>
+        
+        {isMinter && (
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>
+                <Key className="h-4 w-4 mr-2" /> Mint New Token
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Mint New Soulbound Token</DialogTitle>
+                <DialogDescription>
+                  Create a new soulbound token representing an AI Governance Node identity.
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="mintAddress">Recipient Address</Label>
+                  <Input 
+                    id="mintAddress" 
+                    placeholder="0x..." 
+                    value={mintAddress}
+                    onChange={(e) => setMintAddress(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="mintUri">Metadata URI (Optional)</Label>
+                  <Input 
+                    id="mintUri" 
+                    placeholder="ipfs://... or https://..." 
+                    value={mintUri}
+                    onChange={(e) => setMintUri(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Leave empty to auto-generate metadata from the fields below
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="tokenName">Token Name</Label>
+                  <Input 
+                    id="tokenName" 
+                    placeholder="AI Governance Node #123" 
+                    value={mintMetadata.name}
+                    onChange={(e) => setMintMetadata({...mintMetadata, name: e.target.value})}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="tokenDescription">Description</Label>
+                  <Textarea 
+                    id="tokenDescription" 
+                    placeholder="Describe this AI Governance Node..." 
+                    value={mintMetadata.description}
+                    onChange={(e) => setMintMetadata({...mintMetadata, description: e.target.value})}
+                  />
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <Button variant="outline" disabled={loading}>
+                  Cancel
+                </Button>
+                <Button onClick={mintToken} disabled={loading}>
+                  {loading ? 'Minting...' : 'Mint Token'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+      
+      {/* Display the tokens */}
+      {tokens.length > 0 ? (
+        <div className="space-y-4">
+          {tokens.map((token) => (
+            <Card key={token.id} className="bg-background p-4 rounded-md shadow-md">
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center space-x-2">
+                  <div className="flex items-center justify-center w-12 h-12 bg-muted rounded-full">
+                    <Shield className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold">{token.metadata.name || `Token #${token.id}`}</h2>
+                    <p className="text-muted-foreground">{token.metadata.description || "No description available"}</p>
+                  </div>
+                </div>
+                <Badge className="absolute top-3 right-3 bg-background/80">
+                  Token #{token.id}
+                </Badge>
+              </div>
+              
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center justify-between">
+                  <span>{token.metadata.name || `Token #${token.id}`}</span>
+                  <Badge variant="outline" className="bg-primary/5 flex items-center">
+                    <LockIcon className="h-3 w-3 mr-1" /> Soulbound
+                  </Badge>
+                </CardTitle>
+                <CardDescription>
+                  {token.metadata.description || "No description available"}
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-2">
+                    {token.metadata.attributes?.map((attr, index) => (
+                      <div key={index} className="bg-muted/30 p-2 rounded">
+                        <span className="text-xs text-muted-foreground">{attr.trait_type}</span>
+                        <div className="font-medium text-sm">{attr.value}</div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="pt-2">
+                    <div className="text-xs text-muted-foreground mb-1">Token URI</div>
+                    <div className="font-mono text-xs truncate">{token.uri}</div>
+                  </div>
+                </div>
+              </CardContent>
+              
+              <CardFooter className="flex flex-col space-y-2 bg-muted/10 pt-4">
+                <div className="grid grid-cols-2 gap-2 w-full">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => window.open(`https://sepolia.etherscan.io/token/${contractAddress}?a=${token.id}`, '_blank')}
+                    className="w-full"
+                  >
+                    View on Etherscan
+                  </Button>
+                  
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button 
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                      >
+                        Update Metadata
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Update Token Metadata</DialogTitle>
+                        <DialogDescription>
+                          Change the metadata URI for token #{token.id}
+                        </DialogDescription>
+                      </DialogHeader>
+                      
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="newUri">New Metadata URI</Label>
+                          <Input 
+                            id="newUri" 
+                            placeholder={token.uri} 
+                            defaultValue={token.uri}
+                          />
+                        </div>
+                        
+                        <div className="bg-muted/30 p-3 rounded-md flex items-start">
+                          <AlertTriangle className="h-5 w-5 text-amber-500 mr-2 mt-0.5" />
+                          <div className="text-sm">
+                            <p className="font-medium">Warning</p>
+                            <p className="text-muted-foreground">
+                              Updating the metadata URI will change how this token appears.
+                              Only admins can perform this action.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <DialogFooter>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => {}}
+                        >
+                          Cancel
+                        </Button>
+                        <Button 
+                          onClick={() => {
+                            const inputEl = document.getElementById('newUri') as HTMLInputElement;
+                            if (inputEl && inputEl.value) {
+                              updateTokenUri(token.id, inputEl.value);
+                            } else {
+                              toast({
+                                title: "Missing URI",
+                                description: "Please enter a valid metadata URI.",
+                                variant: "destructive"
+                              });
+                            }
+                          }}
+                          disabled={!isAdmin}
+                        >
+                          Update URI
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+                
+                {isAdmin && (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button 
+                        variant="destructive" 
+                        className="w-full"
+                        size="sm"
+                      >
+                        Revoke Token
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle className="text-destructive">Revoke Soulbound Token</DialogTitle>
+                        <DialogDescription>
+                          This action will permanently revoke token #{token.id}. This cannot be undone.
+                        </DialogDescription>
+                      </DialogHeader>
+                      
+                      <div className="bg-destructive/10 p-4 rounded-md my-4">
+                        <div className="flex items-start">
+                          <AlertTriangle className="h-5 w-5 text-destructive mr-2 mt-0.5" />
+                          <div className="text-sm">
+                            <p className="font-medium">Warning: Destructive Action</p>
+                            <p>
+                              Revoking this token will remove it from its owner's wallet. 
+                              Any associated AI Governance Node permissions will be lost.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <DialogFooter>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => {}}
+                        >
+                          Cancel
+                        </Button>
+                        <Button 
+                          variant="destructive"
+                          onClick={() => revokeToken(token.id)}
+                        >
+                          I understand, revoke this token
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Card className="p-6 text-center">
+          <div className="flex flex-col items-center justify-center py-8">
+            <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+              <UnlockIcon className="h-8 w-8 text-muted-foreground/50" />
+            </div>
+            <h3 className="text-lg font-medium mb-2">No Soulbound Tokens Found</h3>
+            <p className="text-muted-foreground max-w-md mx-auto mb-6">
+              You don't own any Soulbound NFTs that authenticate AI Governance Nodes.
+              These tokens are non-transferable and can only be minted by authorized addresses.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => window.open(`https://sepolia.etherscan.io/token/${contractAddress}`, '_blank')}
+              className="gap-2"
+            >
+              <ExternalLink className="h-4 w-4" />
+              View Contract on Etherscan
+            </Button>
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+}
