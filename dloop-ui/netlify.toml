@@ -2,11 +2,59 @@
   command = "npm run build"
   publish = "dist/public"
   functions = "netlify/functions"
+  # Add ignore command to skip builds when no relevant files changed
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF ./client/ ./server/ ./shared/ package.json vite.config.ts"
+
+[build.environment]
+  # Specify Node version to match your development environment
+  NODE_VERSION = "18"
+  # Optimize npm install during build
+  NPM_FLAGS = "--no-audit --production=false"
+
+[context.production.environment]
+  NODE_ENV = "production"
+
+[context.deploy-preview.environment]
+  NODE_ENV = "production"
 
 [dev]
   command = "npm run dev"
   port = 5000
   targetPort = 5000
+
+# Performance optimizations
+[build.processing]
+  skip_processing = false
+
+[build.processing.css]
+  bundle = true
+  minify = true
+
+[build.processing.js]
+  bundle = true
+  minify = true
+
+[build.processing.html]
+  pretty_urls = true
+
+[build.processing.images]
+  compress = true
+
+# Cache headers for static assets
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
 
 # Handle SPA routing by redirecting all paths to index.html
 [[redirects]]
