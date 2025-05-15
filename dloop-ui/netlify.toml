@@ -64,14 +64,15 @@
     Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
     Access-Control-Allow-Headers = "Origin, X-Requested-With, Content-Type, Accept, Authorization"
 
+# API redirects to serverless functions - MUST come BEFORE the SPA catch-all
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+  force = true # Ensure this redirect always happens
+
 # Handle SPA routing by redirecting all paths to index.html
 [[redirects]]
   from = "/*"
   to = "/index.html"
-  status = 200
-
-# API redirects to serverless functions
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
   status = 200
