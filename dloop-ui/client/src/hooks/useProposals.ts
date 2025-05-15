@@ -9,6 +9,7 @@ import { Proposal, CreateProposalParams } from '@/types';
 import { timeRemaining } from '@/lib/utils';
 import { AssetDAOService, ProposalState, ProposalType } from '@/services/assetDaoService';
 import { handleAssetDAOError } from '@/lib/contractErrorHandler';
+import { getAPIPath, fetchAPI } from '@/lib/api-utils'; // Import the new API utility functions
 
 export const useProposals = () => {
   const { signer, isConnected } = useWallet();
@@ -21,11 +22,8 @@ export const useProposals = () => {
     queryKey: ['protocol-metrics'],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/protocol/metrics');
-        if (!response.ok) {
-          throw new Error('Failed to fetch protocol metrics');
-        }
-        return await response.json();
+        // Use the new API utility function
+        return await fetchAPI('/api/protocol/metrics');
       } catch (error) {
         console.error('Error fetching protocol metrics:', error);
         return null;
@@ -40,11 +38,8 @@ export const useProposals = () => {
     queryKey: ['protocol-dao-proposals'],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/protocol/proposals');
-        if (!response.ok) {
-          throw new Error('Failed to fetch protocol proposals');
-        }
-        return await response.json();
+        // Use the new API utility function
+        return await fetchAPI('/api/protocol/proposals');
       } catch (error) {
         console.error('Error fetching protocol proposals:', error);
         return [];
@@ -136,6 +131,9 @@ export const useProposals = () => {
             }
           };
           
+          // Find corresponding token address for the current token
+          const tokenInfo = supportedTokens.find(t => t.symbol === p.token);
+          
           return {
             id: p.id,
             title: p.description?.split('\n')[0] || `Proposal ${p.id}`,
@@ -153,6 +151,8 @@ export const useProposals = () => {
             amount: parseFloat(safeFormatEther(p.amount)),
             token: p.token,
             endsIn: p.votingEnds instanceof Date ? timeRemaining(p.votingEnds.getTime()) : '',
+            // Add contract address for tokens like USDC and WBTC
+            contractAddress: tokenInfo?.address,
           };
         });
         

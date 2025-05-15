@@ -4,6 +4,7 @@ import { useWallet } from '@/components/features/wallet/simplified-wallet-provid
 import { getContract } from '@/lib/contracts';
 import { Participant, Delegation } from '@/types';
 import { useState } from 'react';
+import { getAPIPath, fetchAPI } from '@/lib/api-utils'; // Import the new API utility functions
 
 export const useLeaderboard = () => {
   const { signer, address, isConnected } = useWallet();
@@ -61,12 +62,9 @@ export const useLeaderboard = () => {
         //   delegations
         // };
 
-        // Fetch from the mock API for now
-        const response = await fetch('/api/leaderboard');
-        if (!response.ok) {
-          throw new Error('Failed to fetch leaderboard data');
-        }
-        const data = await response.json();
+        // Fetch from the API using the new utility functions
+        const data = await fetchAPI<any>('/api/leaderboard');
+        console.log('Leaderboard data received:', data);
         
         // Add development mode detection
         const isDevelopmentMode = process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost';
