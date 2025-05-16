@@ -7,7 +7,7 @@
 
 [build.environment]
   # Specify Node version to match your development environment
-  NODE_VERSION = "18"
+  NODE_VERSION = "22"
   # Optimize npm install during build
   NPM_FLAGS = "--no-audit --production=false"
 

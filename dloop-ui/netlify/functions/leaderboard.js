@@ -21,20 +21,34 @@ exports.handler = async (event, context) => {
     
     if (event.httpMethod === 'GET') {
       // Transform data to match expected client structure
-      const transformedData = mockData.leaderboardParticipants.map(participant => ({
+      const transformedParticipants = mockData.leaderboardParticipants.map(participant => ({
         address: participant.address,
         name: participant.name || null,
         type: participant.nodeId ? 'AI Node' : 'Human',
         votingPower: participant.delegatedAmount,
         accuracy: participant.successRate,
-        isCurrentUser: false
+        isCurrentUser: false,
+        // Add additional fields that might be expected by the UI
+        rank: participant.rank || 0,
+        delegators: participant.delegators || 0,
+        performance: participant.performance || 0,
+        proposalsCreated: participant.proposalsCreated || 0,
+        proposalsVoted: participant.proposalsVoted || 0
       }));
       
-      console.log('Returning transformed leaderboard data');
+      // Create the response object with the expected structure
+      const responseData = {
+        participants: transformedParticipants,
+        delegations: mockData.delegations || []
+      };
+      
+      console.log('Returning transformed leaderboard data with structure:', 
+        `{ participants: Array(${transformedParticipants.length}), delegations: Array(${(mockData.delegations || []).length}) }`);
+      
       return {
         statusCode: 200,
         headers,
-        body: JSON.stringify(transformedData)
+        body: JSON.stringify(responseData)
       };
     }
     

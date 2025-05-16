@@ -54,38 +54,43 @@ export const useLeaderboard = () => {
         //   toName: participants.find(p => p.address.toLowerCase() === d.to.toLowerCase())?.name,
         //   toType: participants.find(p => p.address.toLowerCase() === d.to.toLowerCase())?.type || 'Human',
         //   amount: parseFloat(ethers.formatEther(d.amount)),
-        //   date: d.timestamp * 1000
-        // }));
-        
-        // return {
-        //   participants: participants.sort((a, b) => b.votingPower - a.votingPower),
-        //   delegations
-        // };
-
         // Fetch from the API using the new utility functions
         const data = await fetchAPI<any>('/api/leaderboard');
         console.log('Leaderboard data received:', data);
         
-        // Add development mode detection
-        const isDevelopmentMode = process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost';
-        
-        // Check if data and participants exist
+        // Validate data structure - ensure it has participants and delegations
         if (!data) {
-          console.log('Development mode - No leaderboard data received, returning empty arrays');
+          console.log('No leaderboard data received, returning empty arrays');
           return { participants: [], delegations: [] };
         }
         
-        // Create a safe participants array
-        const safeParticipants = data.participants || [];
+        // Ensuring proper structure in case the API returns unexpected format
+        // Look for array at the top level or inside a participants field
+        let safeParticipants = [];
+        let safeDelegations = [];
         
-        // Mark the current user in the participants list
-        if (address && safeParticipants.length > 0) {
-          const participants = safeParticipants.map((p: Participant) => ({
-            ...p,
-            isCurrentUser: p.address.toLowerCase() === address.toLowerCase()
-          }));
-          return { ...data, participants };
+        // Handle the case where data is an object with participants/delegations properties
+        if (data.participants) {
+          safeParticipants = Array.isArray(data.participants) ? data.participants : [];
+          safeDelegations = Array.isArray(data.delegations) ? data.delegations : [];
+          console.log(`Found structured data: ${safeParticipants.length} participants, ${safeDelegations.length} delegations`);
         }
+        // Handle the case where data is an array itself
+        else if (Array.isArray(data)) {
+          safeParticipants = data;
+          console.log(`Found array data: ${safeParticipants.length} items`);
+        }
+        
+        // Mark the current user in the participants list if there are participants
+        if (address && safeParticipants.length > 0) {
+          safeParticipants = safeParticipants.map((p: Participant) => ({
+            ...p,
+            isCurrentUser: p.address?.toLowerCase() === address.toLowerCase()
+          }));
+        }
+        
+        // Add development mode detection
+        const isDevelopmentMode = process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost';
         
         // If we're in development mode and no participants, create mock data
         if (isDevelopmentMode && (!safeParticipants || safeParticipants.length === 0)) {
@@ -134,14 +139,14 @@ export const useLeaderboard = () => {
           
           return { 
             participants: mockParticipants, 
-            delegations: data.delegations || [] 
+            delegations: safeDelegations 
           };
         }
         
-        // Return the data with safe defaults
+        // Return the data with safe defaults using our local variables
         return {
           participants: safeParticipants,
-          delegations: data.delegations || []
+          delegations: safeDelegations
         };
       } catch (error) {
         console.error('Error fetching leaderboard data:', error);
