@@ -1,0 +1,10 @@
+{
+  "dev": {
+    "functionsPort": 9001,
+    "functions": "netlify/functions",
+    "framework": "#auto",
+    "command": "npm run dev",
+    "targetPort": 5002,
+    "port": 9000
+  }
+}

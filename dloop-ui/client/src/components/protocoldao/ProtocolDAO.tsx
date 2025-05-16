@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useWallet } from "@/components/features/wallet/simplified-wallet-provider";
@@ -50,10 +50,10 @@ const ProtocolDAO = () => {
   
   // Fetch protocol proposals
   const {
-    data: protocolProposals,
+    data: rawProtocolProposals,
     isLoading: proposalsLoading,
     error: proposalsError
-  } = useQuery<ProtocolProposal[]>({
+  } = useQuery<any[]>({
     queryKey: ['protocol-proposals'],
     queryFn: async () => {
       try {
@@ -69,6 +69,33 @@ const ProtocolDAO = () => {
     },
     staleTime: 60 * 1000, // 1 minute
   });
+  
+  // Process the raw proposals to add the details property needed by the UI
+  const protocolProposals = useMemo(() => {
+    if (!rawProtocolProposals) return [];
+    return rawProtocolProposals.map(proposal => {
+      // Calculate time remaining or passed
+      const now = Math.floor(Date.now() / 1000);
+      const timeRemaining = proposal.endTimestamp ? proposal.endTimestamp - now : 0;
+      const isPast = timeRemaining <= 0;
+      
+      // Format votes as percentages
+      const forPercent = proposal.voteCount > 0 ? Math.round((proposal.forVotes / proposal.voteCount) * 100) : 0;
+      const againstPercent = proposal.voteCount > 0 ? Math.round((proposal.againstVotes / proposal.voteCount) * 100) : 0;
+      
+      // Add the details array needed by the UI
+      return {
+        ...proposal,
+        details: [
+          { label: 'Proposer', value: `${proposal.proposer?.substring(0, 6)}...${proposal.proposer?.substring(proposal.proposer.length - 4)}`, isHighlighted: false },
+          { label: 'Created', value: new Date(proposal.createdAt * 1000).toLocaleDateString(), isHighlighted: false },
+          { label: 'Status', value: proposal.status || 'active', isHighlighted: proposal.status === 'active' },
+          { label: 'For', value: `${forPercent}%`, isHighlighted: forPercent > 50 },
+          { label: 'Against', value: `${againstPercent}%`, isHighlighted: againstPercent > 50 }
+        ]
+      };
+    });
+  }, [rawProtocolProposals]);
   
   const isLoading = metricsLoading || proposalsLoading;
   

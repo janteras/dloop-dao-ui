@@ -4,7 +4,7 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "dev": "NODE_ENV=development tsx server/index.ts",
+    "dev": "NODE_ENV=development PORT=5002 tsx server/index.ts",
     "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc",
@@ -105,6 +105,7 @@
     "autoprefixer": "^10.4.21",
     "drizzle-kit": "^0.30.6",
     "esbuild": "^0.25.4",
+    "netlify-cli": "^21.4.2",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.19.4",

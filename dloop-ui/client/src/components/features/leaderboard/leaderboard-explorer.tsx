@@ -144,13 +144,18 @@ export default function LeaderboardExplorer() {
   // Combined loading flag: hook loading or local skeleton loading
   const loading = isChainLoading || isPortfolioLoading;
   
-  // Map delegations for enrichment
-  const delegateMap = Object.fromEntries(chainDelegations.map(d => [d.from.toLowerCase(), d.to]));
-  const enrichedParticipants: Participant[] = chainParticipants.map(p => ({
+  // Map delegations for enrichment - safely handle potentially undefined addresses
+  const delegateMap = Object.fromEntries(
+    (chainDelegations || []).map(d => [d.from?.toLowerCase() || '', d.to])
+  );
+  
+  const enrichedParticipants: Participant[] = (chainParticipants || []).map(p => ({
     ...p,
-    delegatedTo: delegateMap[p.address.toLowerCase()],
-    delegatedToName: chainDelegations.find(d => d.from.toLowerCase() === p.address.toLowerCase())?.toName,
-    isCurrentUser: p.isCurrentUser,
+    delegatedTo: p.address ? delegateMap[p.address.toLowerCase() || ''] : undefined,
+    delegatedToName: p.address ? 
+      (chainDelegations || []).find(d => d.from?.toLowerCase() === p.address?.toLowerCase())?.toName : 
+      undefined,
+    isCurrentUser: p.isCurrentUser || false,
   }));
   
   // Filter participants based on selected filter

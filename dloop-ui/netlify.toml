@@ -19,8 +19,8 @@
 
 [dev]
   command = "npm run dev"
-  port = 5000
-  targetPort = 5000
+  port = 9000
+  targetPort = 5002
 
 # Performance optimizations
 [build.processing]
@@ -65,7 +65,20 @@
     Access-Control-Allow-Headers = "Origin, X-Requested-With, Content-Type, Accept, Authorization"
 
 # API redirects to serverless functions - MUST come BEFORE the SPA catch-all
-# Specific redirects for protocol endpoints
+# High-priority specific redirects for critical endpoints
+[[redirects]]
+  from = "/api/config"
+  to = "/.netlify/functions/config"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/leaderboard"
+  to = "/.netlify/functions/leaderboard"
+  status = 200
+  force = true
+
+# Protocol API endpoints
 [[redirects]]
   from = "/api/protocol/metrics"
   to = "/.netlify/functions/protocol-metrics"
@@ -78,7 +91,7 @@
   status = 200
   force = true
 
-# General API redirect for other endpoints
+# General API redirect for other endpoints as fallback
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"

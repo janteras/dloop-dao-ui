@@ -1,5 +1,6 @@
 // Mock data for development/demo
-exports.mockData = {
+// Using ESM export syntax
+const mockData = {
   // Mock proposals data
   proposals: [
     {
@@ -184,16 +185,29 @@ exports.mockData = {
 };
 
 // Helper function to generate reasoning text based on sentiment
-exports.generateSentimentReasoning = function(sentiment, proposalType) {
-  if (sentiment > 70) {
-    return `Strongly supports this ${proposalType} proposal as it aligns with optimal protocol parameters and is likely to increase capital efficiency.`;
-  } else if (sentiment > 30) {
-    return `Generally favorable toward this ${proposalType} initiative, with minor reservations about implementation timing.`;
-  } else if (sentiment > -30) {
-    return `Neutral position on this ${proposalType} with mixed analysis. Should monitor market conditions before proceeding.`;
-  } else if (sentiment > -70) {
-    return `Concerns about this ${proposalType} proposal's impact on protocol stability and risk profile. Suggesting modifications.`;
-  } else {
-    return `Strong opposition to this ${proposalType} proposal based on quantitative risk modeling and historical performance data.`;
-  }
-};
+function generateSentimentReasoning(sentiment, proposalType) {
+  const reasonings = {
+    positive: {
+      expansion: "The proposal aligns with our long-term growth strategy and provides sufficient risk management.",
+      governance: "The governance changes promote transparency and community participation while maintaining operational efficiency.",
+      default: "This proposal demonstrates strong fundamentals and a clear benefit to the ecosystem."
+    },
+    neutral: {
+      expansion: "While the initiative has merit, there are questions about timing and resource allocation.",
+      governance: "The governance modifications are reasonable but may need refinement in implementation details.",
+      default: "The proposal has both benefits and drawbacks that need careful consideration."
+    },
+    negative: {
+      expansion: "The expansion plan lacks adequate risk assessment and may overextend our resources.",
+      governance: "The proposed changes could centralize power and reduce community oversight.",
+      default: "This proposal introduces significant risks that outweigh potential benefits."
+    }
+  };
+  
+  return reasonings[sentiment][proposalType] || reasonings[sentiment].default;
+}
+
+// Export the mockData using ESM syntax
+export { mockData, generateSentimentReasoning };
+
+// Note: We're now using pure ESM exports to avoid module system conflicts

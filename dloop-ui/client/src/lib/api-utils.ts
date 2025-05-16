@@ -8,11 +8,9 @@
  * @returns The correctly formatted path for the current environment
  */
 export const getAPIPath = (path: string): string => {
-  // Check if we're in a Netlify deployment
-  const isNetlify = window.location.hostname.includes('netlify.app');
-  
-  // If on Netlify, transform the path to use Netlify functions
-  if (isNetlify && path.startsWith('/api/')) {
+  // Always use Netlify function paths when running in development or production
+  // This supports both Netlify deployments and Netlify Dev local development
+  if (path.startsWith('/api/')) {
     // Handle special cases for protocol endpoints
     if (path === '/api/protocol/proposals') {
       return '/.netlify/functions/protocol-proposals';
