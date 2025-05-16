@@ -132,11 +132,13 @@ exports.mockData = {
   delegations: [
     {
       nodeId: "node-1",
+      address: "0x7C3fA98507fFcD22A62264AeC6afA82099d96DE1", // Added address field
       amount: 12500,
       since: "2025-03-15T12:00:00Z"
     },
     {
       nodeId: "node-3",
+      address: "0x9E23fA851681545894f3B3c33BD1E7D22239BDE8", // Added address field
       amount: 7500,
       since: "2025-04-02T15:30:00Z"
     }

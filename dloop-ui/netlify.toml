@@ -65,6 +65,20 @@
     Access-Control-Allow-Headers = "Origin, X-Requested-With, Content-Type, Accept, Authorization"
 
 # API redirects to serverless functions - MUST come BEFORE the SPA catch-all
+# Specific redirects for protocol endpoints
+[[redirects]]
+  from = "/api/protocol/metrics"
+  to = "/.netlify/functions/protocol-metrics"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/protocol/proposals"
+  to = "/.netlify/functions/protocol-proposals"
+  status = 200
+  force = true
+
+# General API redirect for other endpoints
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
