@@ -64,8 +64,8 @@ export function WalletGuideModal({ triggerClassName, children }: WalletGuideModa
     },
     {
       name: "Coinbase Wallet",
-      icon: "/images/coinbase-logo.svg",
-      fallbackIcon: "https://www.coinbase.com/assets/press/coinbase-mark-full-color-2273df546b98a0c81b02f7ab3388c7e477ebd553e4d9a8e9de05c05c2254d47b.png",
+      icon: "/images/coinbase-wallet.svg",
+      fallbackIcon: "/images/coinbase-wallet.svg",
       description: isMobile
         ? "Connect using Coinbase Wallet mobile app (will open if installed)"
         : "Backed by Coinbase, one of the largest crypto exchanges",

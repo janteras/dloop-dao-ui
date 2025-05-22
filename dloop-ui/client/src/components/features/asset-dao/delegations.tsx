@@ -237,7 +237,7 @@ export function Delegations() {
           return {
             ...delegation,
             toName: matchingNode.name,
-            toType: 'AI Node' as 'AI Node'
+            toType: 'AI Node' as const
           };
         }
         return delegation;

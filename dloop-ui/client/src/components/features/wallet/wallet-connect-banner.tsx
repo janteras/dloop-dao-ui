@@ -16,9 +16,9 @@ export function WalletConnectBanner() {
       fallback: 'https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg'
     },
     { 
-      src: '/images/coinbase-logo.svg', 
+      src: '/images/coinbase-wallet.svg', 
       alt: 'Coinbase Wallet',
-      fallback: 'https://www.coinbase.com/assets/press/coinbase-mark-full-color-2273df546b98a0c81b02f7ab3388c7e477ebd553e4d9a8e9de05c05c2254d47b.png'
+      fallback: '/images/coinbase-wallet.svg'
     },
     { 
       src: '/images/walletconnect.svg', 

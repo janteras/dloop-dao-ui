@@ -4,20 +4,46 @@ import { ethers } from 'ethers';
 import { useWallet } from '@/hooks/useWallet';
 import { useEthers } from '@/contexts/EthersContext';
 import { getContract } from '@/lib/contracts';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/useToast';
 import { Proposal, CreateProposalParams } from '@/types';
 import { timeRemaining } from '@/lib/utils';
-import { AssetDAOService, ProposalState, ProposalType } from '@/services/assetDaoService';
+import { EnhancedAssetDAOService, ProposalState, ProposalType } from '@/services/enhanced-assetDaoService';
 import { handleAssetDAOError } from '@/lib/contractErrorHandler';
-import { getAPIPath, fetchAPI } from '@/lib/api-utils'; // Import the new API utility functions
+import { fetchAPI } from '@/lib/api-utils';
+import { mapContractTypeToUI, mapUITypeToContract } from '@/lib/proposalTypeMapping';
 
+/**
+ * @hook useProposals
+ * @description A comprehensive hook for managing AssetDAO and ProtocolDAO proposals.
+ * This hook provides functionality for:
+ * - Fetching all proposals from the AssetDAO and ProtocolDAO
+ * - Creating new proposals
+ * - Voting on proposals
+ * - Executing proposals
+ * - Monitoring proposal status changes via blockchain events
+ * 
+ * It handles proper type conversions between UI and contract representations,
+ * error handling, and user notifications.
+ * 
+ * @returns {Object} An object containing proposal data and management functions
+ * @property {Proposal[]} proposals - Current AssetDAO proposals
+ * @property {boolean} isLoading - Loading state for AssetDAO proposals
+ * @property {Error|null} error - Error state for AssetDAO proposals fetch
+ * @property {Function} createProposal - Function to create a new proposal
+ * @property {Function} voteOnProposal - Function to vote on a proposal
+ * @property {Function} executeProposal - Function to execute a passed proposal
+ * @property {Function} refetchProposals - Function to manually refresh proposals
+ */
 export const useProposals = () => {
   const { signer, isConnected } = useWallet();
   const { provider, signer: ethersSigner } = useEthers();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Fetch Protocol metrics
+  /**
+   * Fetches protocol metrics from the API
+   * - Contains information about total value locked, token stats, and other metrics
+   */
   const { data: protocolMetrics } = useQuery({
     queryKey: ['protocol-metrics'],
     queryFn: async () => {
@@ -33,7 +59,11 @@ export const useProposals = () => {
     staleTime: 60 * 1000, // 1 minute
   });
   
-  // Fetch Protocol DAO proposals
+  /**
+   * Fetches Protocol DAO proposals from the API
+   * - These are governance proposals for the overall protocol
+   * - Separate from AssetDAO proposals which focus on investment decisions
+   */
   const { data: protocolProposals, isLoading: protocolLoading, error: protocolError } = useQuery({
     queryKey: ['protocol-dao-proposals'],
     queryFn: async () => {
@@ -49,7 +79,12 @@ export const useProposals = () => {
     staleTime: 60 * 1000, // 1 minute
   });
 
-  // Fetch Asset DAO proposals using the enhanced service
+  /**
+   * Fetches AssetDAO proposals directly from the blockchain
+   * - Uses the AssetDAOService to interact with the contracts
+   * - Transforms the blockchain data into a UI-friendly format
+   * - Handles proper type conversions for amounts, statuses, and types
+   */
   const { data: proposals, isLoading, error, refetch: refetchProposals } = useQuery({
     queryKey: ['asset-dao-proposals'],
     queryFn: async () => {
@@ -76,8 +111,10 @@ export const useProposals = () => {
         }
         
         // Transform the data to match the expected format in the UI
-        const proposalData = await AssetDAOService.getAllProposals(apiProvider);
-        const formattedProposals = proposalData.map((p: any) => {
+        // Use the appropriate provider for the service call
+        const serviceProvider = signer || apiProvider;
+        const proposals = await EnhancedAssetDAOService.getAllProposals(serviceProvider);
+        const formattedProposals = proposals.map((p: any) => {
           // Get proposal state name
           const getStateDescription = (state: number) => {
             const stateNames = ['Pending', 'Active', 'Succeeded', 'Defeated', 'Executed', 'Canceled', 'Expired'];
@@ -105,12 +142,9 @@ export const useProposals = () => {
             }
           };
           
-          // Get proposal type name
+          // Get proposal type name using our utility function
           const getTypeDescription = (type: number) => {
-            if (type === ProposalType.Investment) return 'invest';
-            if (type === ProposalType.Divestment) return 'divest';
-            if (type === ProposalType.ParameterChange) return 'parameter-change';
-            return 'other';
+            return mapContractTypeToUI(type);
           };
           
           // Check for manually canceled proposals
@@ -178,14 +212,21 @@ export const useProposals = () => {
     return () => { assetDAO.off('ProposalCreated', onCreated); };
   }, [provider, queryClient]);
 
-  // Define supported tokens with their Sepolia testnet addresses
+  /**
+   * Supported tokens configuration with their Sepolia testnet addresses
+   * Used for resolving token information throughout the application
+   */
   const supportedTokens = [
     { symbol: "DLOOP", address: "0x05B366778566e93abfB8e4A9B794e4ad006446b4" },
     { symbol: "USDC", address: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238" }, // Sepolia USDC
     { symbol: "WBTC", address: "0xCA063A2AB07491eE991dCecb456D1265f842b568" }  // Sepolia WBTC
   ];
 
-  // Create a new proposal
+  /**
+   * Creates a new proposal in the AssetDAO
+   * @param {CreateProposalParams} params - The proposal parameters
+   * @returns {Promise<boolean>} - Success indicator
+   */
   const createProposal = async (params: CreateProposalParams) => {
     if (!signer || !isConnected) {
       toast({
@@ -199,19 +240,26 @@ export const useProposals = () => {
     setIsSubmitting(true);
     
     try {
+      // Map the UI proposal type to the contract enum value
+      const contractProposalType = mapUITypeToContract(params.type);
       console.log('Creating proposal with parameters:', params);
+      console.log('Mapped UI type', params.type, 'to contract type', contractProposalType);
       
       // This function is mainly used as a backend service call now
       // The actual blockchain transaction happens in create-proposal-modal.tsx
       // This ensures the UI database stays in sync with blockchain proposals
       
       // Make a backend API call to store the proposal in our database
+      // Include mapped contractProposalType with the request
       const response = await fetch('/api/proposals', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(params),
+        body: JSON.stringify({
+          ...params,
+          contractProposalType // Include the mapped contract type
+        }),
       });
       
       if (!response.ok) {
@@ -249,8 +297,8 @@ export const useProposals = () => {
       
       try {
         // Use the service to vote on the proposal
-        const receipt = await AssetDAOService.voteOnProposal(signer, proposalId, support);
-        return { proposalId, success: true, receipt };
+        const tx = await EnhancedAssetDAOService.voteOnProposal(signer, proposalId, support);
+        return { proposalId, success: true, receipt: tx };
       } catch (error) {
         // Use the error handler to get a user-friendly error message
         const errorMsg = handleAssetDAOError(error);

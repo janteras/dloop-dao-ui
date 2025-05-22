@@ -165,18 +165,18 @@ export function EnhancedFooter({ className, showBuildInfo = true }: EnhancedFoot
             <h4 className="font-medium mb-3 text-sm">Resources</h4>
             <ul className="space-y-2">
               <li>
-                <a href="https://d-loop.io/faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <a href="https://d-loop.io" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   FAQ
                 </a>
               </li>
               <li>
-                <a href="https://d-loop.io/tutorials" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <a href="https://d-loop.io" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   Tutorials
                 </a>
               </li>
               <li>
-                <a href="https://d-loop.io/security" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  Security
+                <a href="https://docs.google.com/forms/d/1zyCTczNZzGhRsAywGTJ6PmJlmHxjED8s5wqPEQ-zbPg/viewform?edit_requested=true" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  Contact
                 </a>
               </li>
             </ul>

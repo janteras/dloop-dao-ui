@@ -104,9 +104,9 @@ export function WalletConnectWizard({ onClose }: WalletConnectWizardProps) {
                 <div className="flex items-center gap-3">
                   <div className="h-8 w-8 rounded-full bg-white p-1">
                     <img 
-                      src="/images/coinbase-logo.svg" 
+                      src="/images/coinbase-wallet.svg" 
                       onError={(e) => {
-                        e.currentTarget.src = "https://www.coinbase.com/assets/press/coinbase-mark-full-color-2273df546b98a0c81b02f7ab3388c7e477ebd553e4d9a8e9de05c05c2254d47b.png";
+                        e.currentTarget.src = "/images/coinbase-wallet.svg";
                       }}
                       alt="Coinbase Wallet" 
                       className="h-full w-full object-contain" 

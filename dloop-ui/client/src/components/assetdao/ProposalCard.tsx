@@ -5,18 +5,48 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useWallet } from "@/hooks/useWallet";
 import { Proposal } from "@/types";
-import { shortenAddress, copyToClipboard } from "@/lib/utils";
+import { shortenAddress } from "@/lib/utils";
 import { CountdownTimer } from "@/components/features/shared/countdown-timer";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, ThumbsUp, ThumbsDown } from "lucide-react";
 import toast from "react-hot-toast";
+import { UnifiedProposalCard } from "@/components/web3/unified/proposals/UnifiedProposalCard";
+import { useFeatureFlag } from "@/config/feature-flags";
+import { useUnifiedWallet } from "@/hooks/useUnifiedWallet";
 
 interface ProposalCardProps {
   proposal: Proposal;
   onVote: (proposalId: number, support: boolean) => Promise<void>;
   onExecute: (proposalId: number) => Promise<void>;
+  useWagmi?: boolean; // Allow override to use Wagmi implementation
+  expanded?: boolean; // Whether to show expanded view
 }
 
-const ProposalCard = ({ proposal, onVote, onExecute }: ProposalCardProps) => {
+const ProposalCard = ({ proposal, onVote, onExecute, useWagmi: propUseWagmi, expanded = false }: ProposalCardProps) => {
+  // Check if we should use the unified component based on feature flags
+  const useWagmiProposalCards = useFeatureFlag('useWagmiProposalCards');
+  
+  // If unified card feature is enabled OR explicitly requested via prop, use the unified card
+  const shouldUseUnified = useWagmiProposalCards || propUseWagmi !== undefined;
+  
+  // If we should use the unified component, render that instead
+  if (shouldUseUnified) {
+    return (
+      <UnifiedProposalCard
+        proposal={proposal}
+        onVote={async (proposalId, support) => {
+          await onVote(proposalId, support);
+        }}
+        onExecute={async (proposalId) => {
+          await onExecute(proposalId);
+        }}
+        expanded={expanded}
+        useWagmi={propUseWagmi}
+        className="proposal-card border border-dark-gray hover:cursor-pointer"
+      />
+    );
+  }
+  
+  // Otherwise, use the legacy implementation
   const { isConnected } = useWallet();
   const [isVoting, setIsVoting] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
@@ -62,14 +92,21 @@ const ProposalCard = ({ proposal, onVote, onExecute }: ProposalCardProps) => {
   return (
     <Card className="proposal-card border border-dark-gray hover:cursor-pointer">
       <CardContent className="p-6">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h2 className="text-lg font-medium text-white">{proposal.title}</h2>
-            <p className="text-sm text-gray mt-1">{proposal.description}</p>
-          </div>
+        <div className="flex justify-between items-start mb-2">
+          <Badge variant="outline" 
+            className={`${proposal.type === 'invest' ? 'bg-green-900/20 text-green-500' : 'bg-orange-900/20 text-orange-500'} mb-2`}>
+            {proposal.type === 'invest' ? 'Investment Proposal' : 'Divestment Proposal'}
+          </Badge>
           <Badge variant="outline" className={getBadgeColor()}>
             {proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1)}
           </Badge>
+        </div>
+        
+        <div className="mb-4">
+          <h2 className="text-lg font-medium text-white">{proposal.title}</h2>
+          {(expanded || proposal.description.length < 100) && (
+            <p className="text-sm text-gray mt-1">{proposal.description}</p>
+          )}
         </div>
         
         <div className="grid grid-cols-2 gap-4 mb-4">
@@ -78,7 +115,9 @@ const ProposalCard = ({ proposal, onVote, onExecute }: ProposalCardProps) => {
             <span className="text-white text-sm font-medium">{proposal.token}</span>
           </div>
           <div className="flex flex-col space-y-1">
-            <span className="text-gray text-xs">Amount</span>
+            <span className="text-gray text-xs">
+              {proposal.type === 'invest' ? 'Investment Amount' : 'Withdrawal Amount'}
+            </span>
             <span className="text-white text-sm font-medium">{proposal.amount.toLocaleString()}</span>
           </div>
         </div>
@@ -86,7 +125,9 @@ const ProposalCard = ({ proposal, onVote, onExecute }: ProposalCardProps) => {
         <div className="space-y-3 mb-4">
           <div className="flex justify-between text-sm">
             <span className="text-gray">Type</span>
-            <span className="text-white font-medium capitalize">{proposal.type}</span>
+            <span className={`font-medium capitalize ${proposal.type === 'invest' ? 'text-green-500' : 'text-orange-500'}`}>
+              {proposal.type === 'invest' ? 'Investment' : 'Divestment'}
+            </span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray">Proposer</span>
@@ -145,7 +186,12 @@ const ProposalCard = ({ proposal, onVote, onExecute }: ProposalCardProps) => {
               onClick={() => handleVote(true)}
               disabled={isVoting || !isConnected}
             >
-              {isVoting ? '...' : 'Yes'}
+              {isVoting ? '...' : (
+                <>
+                  <ThumbsUp className="h-4 w-4 mr-1" />
+                  Yes
+                </>
+              )}
             </Button>
             <Button 
               variant="outline"
@@ -153,7 +199,12 @@ const ProposalCard = ({ proposal, onVote, onExecute }: ProposalCardProps) => {
               onClick={() => handleVote(false)}
               disabled={isVoting || !isConnected}
             >
-              {isVoting ? '...' : 'No'}
+              {isVoting ? '...' : (
+                <>
+                  <ThumbsDown className="h-4 w-4 mr-1" />
+                  No
+                </>
+              )}
             </Button>
           </div>
         ) : proposal.status === 'passed' ? (

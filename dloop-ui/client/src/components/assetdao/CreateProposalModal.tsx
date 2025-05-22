@@ -16,6 +16,7 @@ import { useProposals } from "@/hooks/useProposals";
 import { useWallet } from "@/hooks/useWallet";
 import { useToast } from "@/hooks/use-toast";
 import { ProposalType } from "@/types";
+import { mapUITypeToContract } from "@/lib/proposalTypeMapping";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -148,10 +149,13 @@ const CreateProposalModal = ({ isOpen, onClose }: CreateProposalModalProps) => {
     }
     
     try {
+      // Log the proposal type being used for debugging
+      console.log(`Creating proposal with type: ${type} (contract value: ${mapUITypeToContract(type)})`); 
+      
       await createProposal({
         title,
         description,
-        type,
+        type,  // This gets mapped to the correct enum in useProposals
         amount: parseFloat(amount),
         token,
         duration: parseInt(duration),

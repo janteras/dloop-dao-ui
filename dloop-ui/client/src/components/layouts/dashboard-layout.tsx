@@ -11,6 +11,10 @@ import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { EnhancedFooter } from '@/components/layout/EnhancedFooter';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { ContextualHelpTooltip } from '@/components/common/ContextualHelpTooltip';
+import WagmiMigrationNav from '@/components/features/wagmi/WagmiMigrationNav';
+import { Web3Button } from '@/components/web3/unified/Web3Button';
+import { useFeatureFlag } from '@/config/feature-flags';
+import { useAppConfig } from '@/config/app-config';
 
 // Navigation items ordered according to UX feature hierarchy priority
 const navItems = [
@@ -31,6 +35,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { isConnected } = useWallet();
   const [mounted, setMounted] = useState(false);
   const [location] = useLocation();
+  // Move feature flag hooks to the top level to avoid React hooks rule violations
+  const useUnifiedWeb3Button = useFeatureFlag('useUnifiedWeb3Button');
+  const { useWagmi } = useAppConfig();
 
   useEffect(() => {
     setMounted(true);
@@ -69,13 +76,31 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
           <div className="flex items-center gap-3 sm:gap-4">
             <ThemeToggle variant="animated" />
-            {mounted && isConnected ? (
-              <div className="flex items-center gap-3 sm:gap-4">
-                <ConnectionIndicator />
-                <SimpleConnectButton />
-              </div>
-            ) : (
-              <SimpleConnectButton />
+            {mounted && (
+              useUnifiedWeb3Button ? (
+                <Web3Button 
+                  showBalance={true} 
+                  showNetwork={true}
+                  size="md"
+                  customActions={[
+                    {
+                      label: "View on Etherscan",
+                      onClick: () => {
+                        // This would be handled by the Web3Button component
+                      }
+                    }
+                  ]}
+                />
+              ) : (
+                isConnected ? (
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <ConnectionIndicator />
+                    <SimpleConnectButton />
+                  </div>
+                ) : (
+                  <SimpleConnectButton />
+                )
+              )
             )}
           </div>
         </div>
@@ -93,6 +118,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       
       {/* Add the contextual help tooltip for mobile */}
       <ContextualHelpTooltip />
+      
+      {/* Add the Wagmi migration navigation button */}
+      <WagmiMigrationNav />
     </div>
   );
 }

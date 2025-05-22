@@ -5,12 +5,15 @@ import { queryClient } from "./lib/queryClient";
 import App from "./App";
 import "./index.css";
 import { EthersProvider } from "@/contexts/EthersContext";
+import { WagmiProvider } from "@/components/features/wallet/wagmi-provider";
 
 createRoot(document.getElementById("root")!).render(
   <QueryClientProvider client={queryClient}>
-    <EthersProvider>
-      <App />
-    </EthersProvider>
+    <WagmiProvider>
+      <EthersProvider>
+        <App />
+      </EthersProvider>
+    </WagmiProvider>
     {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
   </QueryClientProvider>
 );

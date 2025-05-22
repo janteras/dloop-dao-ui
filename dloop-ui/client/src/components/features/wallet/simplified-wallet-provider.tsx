@@ -55,40 +55,55 @@ export function SimplifiedWalletProvider({ children }: SimplifiedWalletProviderP
   // Check if the window object and ethereum are available
   const isMetaMaskAvailable = typeof window !== 'undefined' && window.ethereum;
 
-  // Create a fallback provider using Infura
+  // Create a fallback provider using Infura or a public RPC endpoint
   useEffect(() => {
     async function setupFallbackProvider() {
       try {
         // Access the Infura API key from environment variables
         // In Vite, environment variables must be prefixed with VITE_
-        let infuraApiKey = import.meta.env.VITE_INFURA_API_KEY;
+        const infuraApiKey = import.meta.env.VITE_INFURA_API_KEY;
+        let provider: ethers.JsonRpcProvider | null = null;
         
-        // Fallback to the .env value if the VITE_ prefixed version isn't available
-        if (!infuraApiKey) {
-          infuraApiKey = 'ca485bd6567e4c5fb5693ee66a5885d8'; // Fallback to hardcoded key only as last resort
-          console.warn('Using fallback Infura API key. For production, set VITE_INFURA_API_KEY in your environment.');
+        // Try connecting to Infura first
+        if (infuraApiKey) {
+          const infuraUrl = `https://sepolia.infura.io/v3/${infuraApiKey}`;
+          
+          try {
+            // Create a JsonRpcProvider with proper error handling
+            provider = new ethers.JsonRpcProvider(infuraUrl);
+            // Test the connection
+            await provider.getBlockNumber();
+            console.log("Fallback Infura provider initialized successfully");
+          } catch (infuraError) {
+            console.warn("Could not connect to Infura, trying fallback public RPC:", infuraError);
+            provider = null; // Reset provider to try fallback
+          }
+        } else {
+          console.warn('No Infura API key found. For production, set VITE_INFURA_API_KEY in your environment.');
         }
         
-        const infuraUrl = `https://sepolia.infura.io/v3/${infuraApiKey}`;
-        
-        // Create a JsonRpcProvider with proper error handling
-        const provider = new ethers.JsonRpcProvider(infuraUrl);
-        
-        // Test the connection with proper error handling
-        try {
-          await provider.getBlockNumber();
-          console.log("Fallback Infura provider initialized successfully");
-          
-          setFallbackProvider(provider);
-          
-          // If no wallet is connected yet, use fallback provider as the default
-          if (!isConnected) {
-            setProvider(provider);
-            setChainId(SEPOLIA_CHAIN_ID);
+        // If Infura failed, try public RPC fallback
+        if (!provider) {
+          try {
+            // Get the fallback RPC URL from environment variables
+            const fallbackRpcUrl = import.meta.env.VITE_FALLBACK_RPC_URL || 'https://eth-sepolia.public.blastapi.io';
+            provider = new ethers.JsonRpcProvider(fallbackRpcUrl);
+            await provider.getBlockNumber();
+            console.log("Using public RPC endpoint as fallback provider");
+          } catch (fallbackError) {
+            console.error("All provider connections failed:", fallbackError);
+            toast.error('Failed to connect to any Ethereum network. Please check your connection.');
+            return; // Exit if all connections fail
           }
-        } catch (blockError) {
-          console.error("Could not connect to Infura. API key may be invalid or network unavailable:", blockError);
-          toast.error('Failed to connect to Ethereum network. Please check your connection.');
+        }
+        
+        // We have a working provider at this point
+        setFallbackProvider(provider);
+        
+        // If no wallet is connected yet, use fallback provider as the default
+        if (!isConnected) {
+          setProvider(provider);
+          setChainId(SEPOLIA_CHAIN_ID);
         }
       } catch (error) {
         console.error("Error initializing fallback provider:", error);

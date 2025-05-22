@@ -189,15 +189,6 @@ export default function AINodesPage() {
             Explore, Delegate and launch AI Governance Nodes
           </p>
         </div>
-        {isConnected && (
-          <Button 
-            onClick={() => window.open("https://sepolia.etherscan.io/token/0x6391C14631b2Be5374297fA3110687b80233104c", "_blank")}
-            variant="outline"
-            className="mt-4 md:mt-0"
-          >
-            View SoulboundNFT Contract <ExternalLink className="ml-2 h-4 w-4" />
-          </Button>
-        )}
       </div>
       
       <Tabs 
@@ -208,31 +199,24 @@ export default function AINodesPage() {
           <TabsTrigger value="explorer">
             <ServerIcon className="h-4 w-4 mr-2" /> Browse Nodes
           </TabsTrigger>
-          <TabsTrigger value="sentiment">
-            <SparklesIcon className="h-4 w-4 mr-2" /> Node Sentiment
-          </TabsTrigger>
-          <TabsTrigger value="identity">
-            <ShieldCheck className="h-4 w-4 mr-2" /> Manage Identity
-          </TabsTrigger>
           <TabsTrigger value="analytics">
-            <BarChart3 className="h-4 w-4 mr-2" /> View Performance
+            <BarChart3 className="h-4 w-4 mr-2" /> Analytics
+          </TabsTrigger>
+          <TabsTrigger value="soulbound">
+            <ShieldCheck className="h-4 w-4 mr-2" /> Soulbound Identity
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="explorer">
+        <TabsContent value="explorer" className="space-y-8">
           <GovernanceNodeExplorer />
         </TabsContent>
         
-        <TabsContent value="identity">
-          <SoulboundManager />
-        </TabsContent>
-        
-        <TabsContent value="sentiment">
-          <SentimentVisualizer />
-        </TabsContent>
-
         <TabsContent value="analytics">
           <AIAnalytics />
+        </TabsContent>
+        
+        <TabsContent value="soulbound">
+          <SoulboundManager />
         </TabsContent>
       </Tabs>
     </PageContainer>

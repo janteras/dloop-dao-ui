@@ -135,8 +135,8 @@ export const AssetDAOService = {
       const createProposal = async (): Promise<ethers.TransactionResponse> => {
         // Approach 1: First try the standard propose function (type, token, amount, description)
         try {
-          // Try with different proposal types if the standard one fails
-          let proposalType = 0; // Investment type
+          // Ensure we're using the correct proposal type
+          const proposalType = ProposalType.Investment; // Investment type (0)
           
           // First validate the token and amount without submitting
           try {
@@ -341,7 +341,7 @@ export const AssetDAOService = {
                  `Total=${ethers.formatEther(totalVotingPower)}`);
       
       // User needs some voting power to vote
-      if (totalVotingPower <= 0n) {
+      if (totalVotingPower <= BigInt(0)) {
         throw new Error(
           'You need DLOOP tokens to vote. Either hold tokens in your wallet or have tokens delegated to you.'
         );

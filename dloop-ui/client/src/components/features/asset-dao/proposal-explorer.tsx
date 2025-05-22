@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useProposals } from "@/hooks/useProposals";
-import { ProposalCard } from "./proposal-card";
+import { UnifiedProposalCard } from "./consolidated";
 import { EnhancedProposalModal } from "./enhanced-proposal-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -89,7 +89,7 @@ export function ProposalExplorer() {
     // If proposal #53 exists, move it to the beginning of the array for active tab
     if (proposal53Index !== -1) {
       proposalsForDistribution.splice(proposal53Index, 1);
-      proposalsForDistribution.unshift(proposal53);
+      proposalsForDistribution.unshift(proposal53 as any);
     }
     
     // Calculate distribution indices (excluding proposal #53 which is already assigned)
@@ -165,7 +165,7 @@ export function ProposalExplorer() {
         </div>
         
         <div className="flex items-center gap-2">
-          <ConnectionIndicator className="hidden md:flex mr-2" />
+          <ConnectionIndicator />
           
           <Button
             variant="outline"
@@ -220,7 +220,9 @@ export function ProposalExplorer() {
       </div>
       
       {/* Tabs for status filtering */}
-      <Tabs defaultValue="active" onValueChange={setActiveTab} className="w-full">
+      <Tabs defaultValue="active" value={activeTab} className="w-full">
+        {/* @ts-ignore - Adding event handler for tab changes */}
+        <div onChange={(e) => setActiveTab(e.target.value)} style={{display: 'none'}} />
         <TabsList className="bg-dark-bg border border-gray rounded-lg p-1 w-full overflow-x-auto flex-nowrap">
           <TabsTrigger 
             value="active" 
@@ -313,7 +315,7 @@ export function ProposalExplorer() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {getFilteredProposalsByStatus("active").map((proposal: any) => (
-                <ProposalCard 
+                <UnifiedProposalCard 
                   key={proposal.id} 
                   proposal={proposal} 
                   onRefresh={handleRefresh}
@@ -351,7 +353,7 @@ export function ProposalExplorer() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {getFilteredProposalsByStatus("passed").map((proposal: any) => (
-                <ProposalCard 
+                <UnifiedProposalCard 
                   key={proposal.id} 
                   proposal={proposal} 
                   onRefresh={handleRefresh}
@@ -389,7 +391,7 @@ export function ProposalExplorer() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {getFilteredProposalsByStatus("executed").map((proposal: any) => (
-                <ProposalCard 
+                <UnifiedProposalCard 
                   key={proposal.id} 
                   proposal={proposal} 
                   onRefresh={handleRefresh}
@@ -427,7 +429,7 @@ export function ProposalExplorer() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {getFilteredProposalsByStatus("failed").map((proposal: any) => (
-                <ProposalCard 
+                <UnifiedProposalCard 
                   key={proposal.id} 
                   proposal={proposal} 
                   onRefresh={handleRefresh}
@@ -478,7 +480,7 @@ export function ProposalExplorer() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {getFilteredProposalsByStatus("all").map((proposal: any) => (
-                <ProposalCard 
+                <UnifiedProposalCard 
                   key={proposal.id} 
                   proposal={proposal} 
                   onRefresh={handleRefresh}

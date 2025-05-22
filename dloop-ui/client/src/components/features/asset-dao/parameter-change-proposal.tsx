@@ -3,7 +3,9 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ethers } from 'ethers';
-import { AssetDAOService, ProposalType } from '@/services/assetDaoService';
+import { EnhancedAssetDAOService, ProposalType } from '@/services/enhanced-assetDaoService';
+import { ErrorHandler, ErrorCategory } from '@/lib/error-handler';
+import { NotificationService } from '@/services/notification-service';
 import { useWallet } from '@/hooks/useWallet';
 import { useToast } from '@/hooks/use-toast';
 import { handleAssetDAOError } from '@/lib/contractErrorHandler';
@@ -126,7 +128,7 @@ export function ParameterChangeProposalDialog({ isOpen, onClose }: ParameterChan
       const fullDescription = `${data.title}\n\n${data.description}\n\nParameter: ${selectedParam?.label}\nNew Value: ${data.value}${data.parameter === 'quorum' ? ' basis points' : ''}`;
       
       // Create proposal using the service
-      const receipt = await AssetDAOService.createParameterChangeProposal(
+      const receipt = await EnhancedAssetDAOService.createParameterChangeProposal(
         signer,
         parameterAddresses[data.parameter as keyof typeof parameterAddresses],
         formattedValue,
@@ -145,11 +147,24 @@ export function ParameterChangeProposalDialog({ isOpen, onClose }: ParameterChan
       }, 3000);
       
     } catch (error) {
-      const errorMessage = handleAssetDAOError(error);
-      setError(errorMessage);
+      // Use our enhanced error handling
+      const appError = ErrorHandler.handleContractError(
+        error, 
+        'AssetDAO', 
+        'createParameterChangeProposal'
+      );
+      
+      setError(appError.message);
+      
+      // Use notification service for consistent error display
+      NotificationService.error(appError.message, {
+        title: "Failed to Create Proposal"
+      });
+      
+      // Also show in toast for compatibility
       toast({
         title: "Failed to Create Proposal",
-        description: errorMessage,
+        description: appError.message,
         variant: "destructive",
       });
     } finally {
