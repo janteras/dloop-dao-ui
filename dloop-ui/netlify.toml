@@ -1,15 +1,15 @@
 [build]
-  command = "npm run build"
+  command = "npm ci --legacy-peer-deps && npm run build"
   publish = "dist/public"
   functions = "netlify/functions"
   # Add ignore command to skip builds when no relevant files changed
   ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF ./client/ ./server/ ./shared/ package.json vite.config.ts"
 
 [build.environment]
-  # Specify Node version to match your development environment
-  NODE_VERSION = "22"
-  # Optimize npm install during build
-  NPM_FLAGS = "--no-audit --production=false"
+  # Use a more stable Node version with LTS status
+  NODE_VERSION = "20"
+  # Install all dependencies including dev dependencies
+  NPM_FLAGS = "--no-audit --include=dev"
 
 [context.production.environment]
   NODE_ENV = "production"

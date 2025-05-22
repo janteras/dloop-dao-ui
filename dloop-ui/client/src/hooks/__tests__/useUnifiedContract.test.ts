@@ -1,4 +1,5 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react';
+import React, { ReactNode } from 'react';
 import { useUnifiedContract } from '../useUnifiedContract';
 // Use relative paths for imports to avoid module resolution issues
 import { useAppConfig } from '../../config/app-config';

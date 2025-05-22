@@ -1,13 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="212" height="189" viewBox="0 0 212 189" fill="none">
-  <!-- Define a larger viewBox that matches metamask-fox.svg -->
-  <g transform="translate(56, 56) scale(3.5)">
-    <!-- Blue background circle -->
-    <circle cx="14" cy="14" r="14" fill="#2952EA" stroke="none"/>
-    
-    <!-- White inner circle/letter C -->
-    <path d="M14 9a5 5 0 1 1 0 10 5 5 0 0 1 0-10z" fill="white" stroke="none"/>
-    
-    <!-- Blue inner circle to create the C shape -->
-    <path d="M14 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" fill="#2952EA" stroke="none"/>
-  </g>
-</svg>
+  <!-- Outer blue rounded square (scaled to match viewBox) -->
+  <path d="M106 10C75.1 10 50 35.1 50 66V123C50 153.9 75.1 179 106 179C136.9 179 162 153.9 162 123V66C162 35.1 136.9 10 106 10Z" fill="#2952EA" stroke="#2952EA" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Inner white circle -->
+  <path d="M106 74C92.2 74 81 85.2 81 99C81 112.8 92.2 124 106 124C119.8 124 131 112.8 131 99C131 85.2 119.8 74 106 74Z" fill="white" stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Optional: Add subtle highlight on the top left -->
+  <path d="M74 40C74 40 74 40 74 40C84 30 94 25 106 25C118 25 128 30 138 40C148 50 153 60 153 66C153 68 152 70 150 72C148 74 146 75 144 75C142 75 140 74 138 72C136 70 135 68 135 66C135 64 135.5 62 136.5 60C137.5 58 139 56 141 54" fill="#2952EA" stroke="#4066EE" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Optional: Add subtle shadow on the bottom right -->
+  <path d="M138 158C128 168 118 173 106 173C94 173 84 168 74 158C64 148 59 138 59 132C59 130 60 128 62 126C64 124 66 123 68 123C70 123 72 124 74 126C76 128 77 130 77 132C77 134 76.5 136 75.5 138C74.5 140 73 142 71 144" fill="#2952EA" stroke="#2341C9" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Coinbase logo inner C shape (white circle with gap) -->
+  <path d="M106 88C99.4 88 94 93.4 94 100C94 106.6 99.4 112 106 112C112.6 112 118 106.6 118 100" fill="white" stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M118 100C118 93.4 112.6 88 106 88" fill="white" stroke="#2952EA" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>

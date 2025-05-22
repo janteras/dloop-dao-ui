@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react';
 import { BigNumber } from '@ethersproject/bignumber';
 import { useUnifiedProposalList } from '../useUnifiedProposals';
 import { useUnifiedAINodes } from '../useUnifiedAINodes';
