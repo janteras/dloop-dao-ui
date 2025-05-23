@@ -107,7 +107,7 @@
     "autoprefixer": "^10.4.21",
     "cross-env": "^7.0.3",
     "drizzle-kit": "^0.31.1",
-    "esbuild": "^0.25.4",
+    "esbuild": "0.18.20",
     "eslint": "^9.27.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-react": "^7.37.5",
@@ -126,14 +126,16 @@
   "overrides": {
     "rollup": "3.29.4",
     "vite": {
-      "rollup": "3.29.4"
+      "rollup": "3.29.4",
+      "esbuild": "0.18.20"
     },
+    "esbuild": "0.18.20",
     "tsx": {
       "@esbuild-kit/core-utils": {
-        "esbuild": "0.25.4"
+        "esbuild": "0.18.20"
       },
       "@esbuild-kit/esm-loader": {
-        "esbuild": "0.25.4"
+        "esbuild": "0.18.20"
       }
     }
   }
