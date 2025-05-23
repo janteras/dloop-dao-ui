@@ -1,5 +1,6 @@
 [build]
-  command = "npm install --no-save --legacy-peer-deps && ROLLUP_FORCE_PURE_JS=true npm run build"
+  # Enhanced build command with migration flag support and bundle analysis
+  command = "npm install --no-save --legacy-peer-deps && ANALYZE=true ROLLUP_FORCE_PURE_JS=true npm run build"
   publish = "dist/public"
   functions = "netlify/functions"
   # Add ignore command to skip builds when no relevant files changed
@@ -10,19 +11,50 @@
   NODE_VERSION = "20"
   # Optimize npm install during build
   NPM_FLAGS = "--no-audit --production=false"
+  # Enable source maps for better error reporting
+  GENERATE_SOURCEMAP = "true"
+  # Set cache buster for asset URLs
+  VITE_CACHE_BUST = "${COMMIT_REF}"
+  # Default to Ethers implementation unless overridden
+  VITE_ENABLE_WAGMI = "false"
 
 [context.production.environment]
   NODE_ENV = "production"
+  # Enable Wagmi in production to start the gradual rollout
+  VITE_ENABLE_WAGMI = "true"
+  # Enable telemetry in production
+  VITE_ENABLE_TELEMETRY = "true"
+  # Set specific feature flags for AssetDAO migration
+  VITE_ENABLE_WAGMI_FOR_ASSETDAO = "true"
+  VITE_ENABLE_WAGMI_FOR_TOKENVAULT = "false"
+  VITE_ENABLE_WAGMI_FOR_BOUNTYMANAGER = "false"
+  # Enable performance monitoring
+  VITE_ENABLE_PERFORMANCE_MONITORING = "true"
 
 [context.deploy-preview.environment]
   NODE_ENV = "production"
+  # Always enable Wagmi in deploy previews for testing
+  VITE_ENABLE_WAGMI = "true"
+  # Enable telemetry in deploy previews
+  VITE_ENABLE_TELEMETRY = "true"
+  # Set specific feature flags for AssetDAO migration
+  VITE_ENABLE_WAGMI_FOR_ASSETDAO = "true"
+  VITE_ENABLE_WAGMI_FOR_TOKENVAULT = "true"
+  VITE_ENABLE_WAGMI_FOR_BOUNTYMANAGER = "true"
+  # Enable performance monitoring
+  VITE_ENABLE_PERFORMANCE_MONITORING = "true"
+  
+[context.branch-deploy.environment]
+  # Configure branch deploys for testing specific features
+  NODE_ENV = "production"
+  # Feature flag configuration will be customized per branch
 
 [dev]
   command = "npm run dev"
   port = 9000
   targetPort = 5002
 
-# Performance optimizations
+# Enhanced performance optimizations for migrated components
 [build.processing]
   skip_processing = false
 
@@ -98,8 +130,40 @@
   status = 200
   force = true # Ensure this redirect always happens
 
+# Migration dashboard endpoint
+[[redirects]]
+  from = "/api/migration-status"
+  to = "/.netlify/functions/migration-status"
+  status = 200
+  force = true
+
+# Performance metrics endpoint
+[[redirects]]
+  from = "/api/performance"
+  to = "/.netlify/functions/performance-metrics"
+  status = 200
+  force = true
+
 # Handle SPA routing by redirecting all paths to index.html
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Post-processing for improved Core Web Vitals
+[build.processing.html]
+  pretty_urls = true
+  
+# Plugin configuration for bundle analysis
+[[plugins]]
+  package = "@netlify/plugin-lighthouse"
+  
+  [plugins.inputs]
+    output_path = "reports/lighthouse.html"
+
+[[plugins]]
+  package = "netlify-plugin-inline-critical-css"
+  
+  [plugins.inputs]
+    # Inline critical CSS for faster rendering
+    fileFilter = ["/index.html"]
