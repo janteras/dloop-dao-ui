@@ -150,10 +150,6 @@
   to = "/index.html"
   status = 200
 
-# Post-processing for improved Core Web Vitals
-[build.processing.html]
-  pretty_urls = true
-  
 # Plugin configuration for bundle analysis
 [[plugins]]
   package = "@netlify/plugin-lighthouse"
