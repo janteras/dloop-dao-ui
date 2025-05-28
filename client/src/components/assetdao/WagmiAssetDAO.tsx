@@ -9,7 +9,7 @@ import { WagmiProposalCard } from './WagmiProposalCard';
 import { Spinner } from '@/components/ui/spinner';
 import { ProposalStatus } from '@/types';
 
-export function WagmiAssetDAO() {
+export default function WagmiAssetDAO() {
   const { proposals, isLoading, error, refetch } = useWagmiProposals();
   const { isConnected } = useWallet();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);

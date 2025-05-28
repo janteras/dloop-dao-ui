@@ -23,7 +23,7 @@ interface WagmiCreateProposalModalProps {
   onSuccess: () => void;
 }
 
-const WagmiCreateProposalModal = ({ isOpen, onClose, onSuccess }: WagmiCreateProposalModalProps) => {
+export const WagmiCreateProposalModal = ({ isOpen, onClose, onSuccess }: WagmiCreateProposalModalProps) => {
   const { isConnected } = useWagmiWallet();
   const { createProposal, isPending, isConfirming } = useCreateProposal();
   const isLoading = isPending || isConfirming;
@@ -173,4 +173,4 @@ const WagmiCreateProposalModal = ({ isOpen, onClose, onSuccess }: WagmiCreatePro
   );
 };
 
-export default WagmiCreateProposalModal;
+

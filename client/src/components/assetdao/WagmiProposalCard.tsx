@@ -24,7 +24,7 @@ interface WagmiProposalCardProps {
  * This component uses wagmi hooks for wallet connection and contract interactions
  * while maintaining the same UI and functionality as the original ProposalCard
  */
-const WagmiProposalCard = ({ proposal, onActionComplete }: WagmiProposalCardProps) => {
+export const WagmiProposalCard = ({ proposal, onActionComplete }: WagmiProposalCardProps) => {
   const { isConnected } = useWagmiWallet();
   const { voteOnProposal, isVoting } = useWagmiProposalVoting();
   const { executeProposal, isExecuting } = useWagmiProposalExecution();
@@ -228,4 +228,3 @@ const WagmiProposalCard = ({ proposal, onActionComplete }: WagmiProposalCardProp
   );
 };
 
-export default WagmiProposalCard;
