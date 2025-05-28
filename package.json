@@ -88,7 +88,10 @@
     "zod": "^3.24.4",
     "zustand": "^5.0.5",
     "@vitejs/plugin-react": "^4.4.1",
-    "autoprefixer": "^10.4.21"
+    "autoprefixer": "^10.4.21",
+    "@tailwindcss/typography": "^0.5.16",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -102,9 +105,7 @@
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
-    "postcss": "^8.5.3",
     "prettier": "^3.5.3",
-    "tailwindcss": "^3.4.17",
     "tsx": "^4.19.4",
     "typescript": "5.6.3",
     "typescript-eslint": "^8.32.1"
