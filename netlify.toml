@@ -9,8 +9,8 @@
 [build.environment]
   # Specify Node version to match your development environment
   NODE_VERSION = "20"
-  # Optimize npm install during build
-  NPM_FLAGS = "--no-audit --production=false"
+  # Optimize npm install during build with legacy peer deps support
+  NPM_FLAGS = "--legacy-peer-deps --no-audit --production=false"
   # Enable source maps for better error reporting
   GENERATE_SOURCEMAP = "true"
   # Set cache buster for asset URLs
