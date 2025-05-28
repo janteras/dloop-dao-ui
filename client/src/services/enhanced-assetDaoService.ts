@@ -167,7 +167,7 @@ export class EnhancedAssetDAOService {
       const meetsQuorum = totalVotes >= 100000; // 100,000 DLOOP quorum
       const hasMajority = forVotesFormatted > againstVotesFormatted;
       const hasDeadlinePassed = new Date() > new Date((typeof votingEnds === 'number' ? votingEnds : parseInt(votingEnds.toString())) * 1000);
-      
+
       // Map to UI-friendly format using the enhanced mapping function
       const proposal: ProposalDetails = {
         id: typeof id === 'number' ? id : parseInt(id.toString()),
@@ -504,3 +504,67 @@ export class EnhancedAssetDAOService {
 }
 
 export default EnhancedAssetDAOService;
+const executeProposal = async (proposalId: number): Promise<boolean> => {
+    if (!signer) {
+      throw new Error('No signer available');
+    }
+
+    try {
+      const contract = getAssetDAOContract(signer);
+
+      console.log(`🔄 Executing proposal ${proposalId}...`);
+
+      // Get detailed proposal state before execution
+      try {
+        const proposalData = await contract.getProposal(proposalId);
+        const currentTime = Math.floor(Date.now() / 1000);
+        const [executionDelay, timelockPeriod, quorum] = await Promise.all([
+          contract.executionDelay(),
+          contract.timelockPeriod(),
+          contract.quorum(),
+        ]);
+
+        console.log(`📊 Proposal ${proposalId} execution diagnostics:`, {
+          proposalData: {
+            id: proposalData.id?.toString(),
+            status: proposalData.status,
+            executed: proposalData.executed,
+            votingEnds: proposalData.votingEnds?.toString(),
+            yesVotes: proposalData.yesVotes?.toString(),
+            noVotes: proposalData.noVotes?.toString(),
+          },
+          governance: {
+            executionDelay: executionDelay?.toString(),
+            timelockPeriod: timelockPeriod?.toString(),
+            quorum: quorum?.toString(),
+          },
+          timing: {
+            currentTime,
+            votingEndTime: proposalData.votingEnds?.toString(),
+            timeSinceVotingEnded: currentTime - Number(proposalData.votingEnds?.toString() || 0),
+          }
+        });
+      } catch (diagError) {
+        console.warn(`⚠️ Could not get diagnostic info for proposal ${proposalId}:`, diagError);
+      }
+
+      const tx = await contract.executeProposal(proposalId);
+      const receipt = await tx.wait();
+
+      console.log(`✅ Proposal ${proposalId} executed successfully:`, receipt.hash);
+      return true;
+    } catch (error) {
+      console.error(`❌ Error executing proposal ${proposalId}:`, error);
+
+      // Enhanced error logging
+      if (error instanceof Error) {
+        console.error(`❌ Error details:`, {
+          message: error.message,
+          name: error.name,
+          stack: error.stack,
+        });
+      }
+
+      throw error;
+    }
+  };

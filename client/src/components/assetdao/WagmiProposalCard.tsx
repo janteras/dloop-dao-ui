@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -27,8 +27,9 @@ interface WagmiProposalCardProps {
 export const WagmiProposalCard = ({ proposal, onActionComplete }: WagmiProposalCardProps) => {
   const { isConnected } = useWagmiWallet();
   const { voteOnProposal, isVoting } = useWagmiProposalVoting();
-  const { executeProposal, isExecuting } = useWagmiProposalExecution();
+  const { executeProposal, isExecuting, checkExecutionReadiness } = useWagmiProposalExecution();
   const [copyingAddress, setCopyingAddress] = useState<string | null>(null);
+  const [executionStatus, setExecutionStatus] = useState<{ canExecute: boolean; reason: string } | null>(null);
 
   const handleVote = async (support: boolean) => {
     if (!isConnected) {
@@ -59,6 +60,13 @@ export const WagmiProposalCard = ({ proposal, onActionComplete }: WagmiProposalC
       console.error("Error in execute handler:", error);
     }
   };
+
+  // Check execution readiness for passed proposals
+  React.useEffect(() => {
+    if (proposal.status === 'passed' && checkExecutionReadiness) {
+      checkExecutionReadiness(proposal.id).then(setExecutionStatus);
+    }
+  }, [proposal.status, proposal.id, checkExecutionReadiness]);
 
   const handleCopyAddress = async (address: string) => {
     try {
@@ -213,15 +221,24 @@ export const WagmiProposalCard = ({ proposal, onActionComplete }: WagmiProposalC
             </Button>
           </div>
         ) : proposal.status === 'passed' ? (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleExecute}
-            disabled={isExecuting || !isConnected}
-            className="w-full"
-          >
-            {isExecuting ? "Executing..." : "Execute Proposal"}
-          </Button>
+          <div className="space-y-2">
+            {executionStatus && !executionStatus.canExecute && (
+              <div className="text-xs text-orange-400 bg-orange-900/20 rounded p-2">
+                {executionStatus.reason}
+              </div>
+            )}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleExecute}
+              disabled={isExecuting || !isConnected || (executionStatus && !executionStatus.canExecute)}
+              className="w-full"
+            >
+              {isExecuting ? "Executing..." : 
+               executionStatus?.canExecute === false ? "Not Ready" : 
+               "Execute Proposal"}
+            </Button>
+          </div>
         ) : null}
       </CardContent>
     </Card>
