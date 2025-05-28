@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/common/ui/card';
 import { Button } from '@/components/common/ui/button';
-import { CheckCircle, XCircle, AlertTriangle, RefreshCw } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, RefreshCw, Copy, Check } from 'lucide-react';
 import { useBlockchainInfo } from '@/hooks/useBlockchainInfo';
 import { useAssetDAOInfo } from '@/hooks/useAssetDAOInfo';
 import { getContractAddress } from '@/lib/contracts';
@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/common/ui/skeleton';
  */
 export function BlockchainVerification() {
   const [isVerifying, setIsVerifying] = useState(false);
+  const [copied, setCopied] = useState(false);
   const { blockNumber, blockTimestamp, gasPrice, isLoading: blockInfoLoading, error: blockInfoError } = useBlockchainInfo();
   const { proposalCount, governanceTokenAddress, isLoading: contractLoading, error: contractError } = useAssetDAOInfo();
   
@@ -28,6 +29,18 @@ export function BlockchainVerification() {
     setIsVerifying(true);
     // Verification will trigger hook refreshes
     setTimeout(() => setIsVerifying(false), 3000);
+  };
+
+  // Handle copy contract address
+  const handleCopyAddress = async () => {
+    try {
+      const contractAddress = getContractAddress('AssetDAO');
+      await navigator.clipboard.writeText(contractAddress);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy address:', err);
+    }
   };
   
   // Get status text and icon
@@ -87,11 +100,24 @@ export function BlockchainVerification() {
         
         {/* Contract Status */}
         <div className="flex items-center justify-between">
-          <div>
+          <div className="flex-1">
             <h3 className="text-sm font-medium">AssetDAO Contract</h3>
-            <p className="text-xs text-gray-500">
-              {getContractAddress('AssetDAO').slice(0, 6)}...{getContractAddress('AssetDAO').slice(-4)}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-gray-500">
+                {getContractAddress('AssetDAO').slice(0, 6)}...{getContractAddress('AssetDAO').slice(-4)}
+              </p>
+              <button
+                onClick={handleCopyAddress}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                title="Copy contract address"
+              >
+                {copied ? (
+                  <Check className="h-3 w-3 text-green-500" />
+                ) : (
+                  <Copy className="h-3 w-3" />
+                )}
+              </button>
+            </div>
           </div>
           <div className="flex items-center">
             {getStatusIcon(

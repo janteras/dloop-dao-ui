@@ -249,7 +249,7 @@ export function ProposalExplorer() {
           <Button
             variant="outline"
             size="sm"
-            className="bg-dark-bg border-gray text-white hover:border-accent transition-all duration-300 hover:shadow-sm hover:translate-y-[-1px]"
+            className="bg-dark-bg border-gray text-gray-300 hover:text-accent hover:border-accent transition-all duration-300 hover:shadow-sm hover:translate-y-[-1px]"
             onClick={handleRefresh}
             disabled={refreshing}
           >
@@ -286,13 +286,13 @@ export function ProposalExplorer() {
             value={filters.type} 
             onValueChange={(value) => setFilters({ ...filters, type: value as ProposalType | "all" })}
           >
-            <SelectTrigger className="w-[180px] bg-dark-bg border-gray text-white focus:ring-accent transition-all duration-300 hover:border-accent/70 hover:shadow-sm">
+            <SelectTrigger className="w-[180px] bg-dark-bg border-gray text-gray-300 focus:ring-accent transition-all duration-300 hover:border-accent/70 hover:shadow-sm">
               <SelectValue placeholder="Filter by type" />
             </SelectTrigger>
-            <SelectContent className="bg-dark-bg border-gray text-white animate-in fade-in-80 zoom-in-95">
-              <SelectItem value="all" className="transition-colors duration-200 hover:bg-accent/10 focus:bg-accent/20">All Types</SelectItem>
-              <SelectItem value="invest" className="transition-colors duration-200 hover:bg-accent/10 focus:bg-accent/20">Invest</SelectItem>
-              <SelectItem value="divest" className="transition-colors duration-200 hover:bg-accent/10 focus:bg-accent/20">Divest</SelectItem>
+            <SelectContent className="bg-dark-bg border-gray text-gray-300 animate-in fade-in-80 zoom-in-95">
+              <SelectItem value="all" className="transition-colors duration-200 hover:bg-accent/10 focus:bg-accent/20 hover:text-white focus:text-white">All Types</SelectItem>
+              <SelectItem value="invest" className="transition-colors duration-200 hover:bg-accent/10 focus:bg-accent/20 hover:text-white focus:text-white">Invest</SelectItem>
+              <SelectItem value="divest" className="transition-colors duration-200 hover:bg-accent/10 focus:bg-accent/20 hover:text-white focus:text-white">Divest</SelectItem>
             </SelectContent>
           </Select>
         </div>

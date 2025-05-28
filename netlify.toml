@@ -1,6 +1,6 @@
 [build]
   # Enhanced build command with migration flag support and bundle analysis
-  command = "npm ci --legacy-peer-deps --no-audit --prefer-offline && ROLLUP_FORCE_PURE_JS=true npm run build"
+  command = "npm ci --legacy-peer-deps --no-audit && ROLLUP_FORCE_PURE_JS=true npm run build"
   publish = "dist/public"
   functions = "netlify/functions"
   # Add ignore command to skip builds when no relevant files changed

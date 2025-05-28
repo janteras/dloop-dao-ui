@@ -1,4 +1,3 @@
-
 /**
  * Wagmi Proposal Hooks
  * 
@@ -10,7 +9,9 @@ import { useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { formatEther } from 'viem';
-import { ASSET_DAO_ADDRESS, ASSET_DAO_ABI } from '@/config/contracts';
+import { CONTRACT_ADDRESSES } from '@/config/contracts';
+
+const ASSET_DAO_ADDRESS = CONTRACT_ADDRESSES.AssetDAO;
 import { Proposal as ProposalType, ProposalStatus } from '@/types';
 import toast from 'react-hot-toast';
 
@@ -77,7 +78,7 @@ export const useWagmiProposals = () => {
  */
 export function useWagmiProposalList() {
   const { address } = useAccount();
-  
+
   // Get proposal count
   const { data: proposalCount } = useReadContract({
     address: ASSET_DAO_ADDRESS as `0x${string}`,
@@ -90,7 +91,7 @@ export function useWagmiProposalList() {
     queryKey: ['proposal-list', proposalCount],
     queryFn: async () => {
       if (!proposalCount || proposalCount === 0n) return [];
-      
+
       const proposalData = [];
       for (let i = 1; i <= Number(proposalCount); i++) {
         try {
@@ -107,7 +108,7 @@ export function useWagmiProposalList() {
     },
     enabled: !!proposalCount && proposalCount > 0n,
   });
-  
+
   // Convert proposals to our app's format
   const formattedProposals: ProposalType[] = (proposals || []).map(proposal => ({
     id: proposal.id,
@@ -123,7 +124,7 @@ export function useWagmiProposalList() {
     endsIn: getTimeRemaining(new Date(Number(proposal.votingEnds) * 1000)),
     endTimeISO: new Date(Number(proposal.votingEnds) * 1000).toISOString(),
   }));
-  
+
   return {
     proposals: formattedProposals,
     isLoading,
@@ -139,13 +140,13 @@ export function useWagmiProposalList() {
 export function useWagmiProposalVoting() {
   const { address } = useAccount();
   const { writeContract, isPending, error } = useWriteContract();
-  
+
   const voteOnProposal = useCallback(async (proposalId: number, support: boolean) => {
     if (!address) {
       toast.error('Please connect your wallet');
       throw new Error('Wallet not connected');
     }
-    
+
     try {
       const hash = await writeContract({
         address: ASSET_DAO_ADDRESS as `0x${string}`,
@@ -153,7 +154,7 @@ export function useWagmiProposalVoting() {
         functionName: 'vote',
         args: [BigInt(proposalId), support],
       });
-      
+
       toast.success(`Successfully voted ${support ? 'for' : 'against'} proposal ${proposalId}`);
       return hash;
     } catch (error) {
@@ -166,7 +167,7 @@ export function useWagmiProposalVoting() {
       throw error;
     }
   }, [address, writeContract]);
-  
+
   return {
     voteOnProposal,
     isVoting: isPending,
@@ -180,13 +181,13 @@ export function useWagmiProposalVoting() {
 export function useWagmiProposalExecution() {
   const { address } = useAccount();
   const { writeContract, isPending, error } = useWriteContract();
-  
+
   const execute = useCallback(async (proposalId: number) => {
     if (!address) {
       toast.error('Please connect your wallet');
       throw new Error('Wallet not connected');
     }
-    
+
     try {
       const hash = await writeContract({
         address: ASSET_DAO_ADDRESS as `0x${string}`,
@@ -194,7 +195,7 @@ export function useWagmiProposalExecution() {
         functionName: 'executeProposal',
         args: [BigInt(proposalId)],
       });
-      
+
       toast.success(`Successfully executed proposal ${proposalId}`);
       return hash;
     } catch (error) {
@@ -207,7 +208,7 @@ export function useWagmiProposalExecution() {
       throw error;
     }
   }, [address, writeContract]);
-  
+
   return {
     executeProposal: execute,
     isExecuting: isPending,
@@ -247,14 +248,14 @@ function mapProposalState(state: number): ProposalStatus {
 function getTimeRemaining(endTime: Date): string {
   const now = new Date();
   const remaining = endTime.getTime() - now.getTime();
-  
+
   if (remaining <= 0) {
     return 'Ended';
   }
-  
+
   const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
   const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  
+
   if (days > 0) {
     return `${days}d ${hours}h`;
   } else {

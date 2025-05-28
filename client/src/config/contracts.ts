@@ -201,14 +201,78 @@ export const contracts = {
   }
 };
 
+// Define network configuration
+export const NETWORK_ID = '11155111'; // Sepolia testnet
+
+// Contract types
+export type ContractName = 'AssetDAO' | 'DLoopToken' | 'ProtocolDAO' | 'AINodeRegistry' | 'SoulboundNFT';
+
+// Contract configuration structure
+interface ContractConfig {
+  addresses: Record<string, string>;
+  abi: any[];
+}
+
+// Contract configurations with addresses and ABIs
+export const CONTRACT_CONFIGS: Record<ContractName, ContractConfig> = {
+  AssetDAO: {
+    addresses: {
+      [NETWORK_ID]: '0xa87e662061237a121Ca2E83E77dA8251bc4B3529'
+    },
+    abi: ABIS.AssetDAO
+  },
+  DLoopToken: {
+    addresses: {
+      [NETWORK_ID]: '0x05B366778566e93abfB8e4A9B794e4ad006446b4'
+    },
+    abi: ABIS.DLoopToken
+  },
+  ProtocolDAO: {
+    addresses: {
+      [NETWORK_ID]: ADDRESSES.ProtocolDAO
+    },
+    abi: ABIS.ProtocolDAO
+  },
+  AINodeRegistry: {
+    addresses: {
+      [NETWORK_ID]: ADDRESSES.AINodeRegistry
+    },
+    abi: ABIS.AINodeRegistry
+  },
+  SoulboundNFT: {
+    addresses: {
+      [NETWORK_ID]: ADDRESSES.SoulboundNFT
+    },
+    abi: ABIS.SoulboundNFT
+  }
+};
+
 // Contract addresses for Sepolia testnet
 export const CONTRACT_ADDRESSES = {
   AssetDAO: '0xa87e662061237a121Ca2E83E77dA8251bc4B3529',
   DLoopToken: '0x05B366778566e93abfB8e4A9B794e4ad006446b4',
-  ProtocolDAO: '0x1234567890123456789012345678901234567890', // Placeholder
-  AINodeRegistry: '0x1234567890123456789012345678901234567891', // Placeholder
-  SoulboundNFT: '0x1234567890123456789012345678901234567892', // Placeholder
+  ProtocolDAO: ADDRESSES.ProtocolDAO,
+  AINodeRegistry: ADDRESSES.AINodeRegistry,
+  SoulboundNFT: ADDRESSES.SoulboundNFT,
 } as const;
 
 // Make sure CONTRACT_ADDRESSES is properly exported
 export default CONTRACT_ADDRESSES;
+
+export const getContractAddress = (contractName: ContractName): string => {
+  const config = CONTRACT_CONFIGS[contractName];
+  if (!config) {
+    throw new Error(`Contract ${contractName} not found in configuration`);
+  }
+
+  const address = config.addresses[NETWORK_ID];
+  if (!address) {
+    throw new Error(`Contract ${contractName} not deployed on network ${NETWORK_ID}`);
+  }
+
+  return address;
+};
+
+// Export specific contract addresses for backward compatibility
+export const ASSET_DAO_ADDRESS = CONTRACT_ADDRESSES.AssetDAO;
+export const ASSET_DAO_ABI = ABIS.AssetDAO;
