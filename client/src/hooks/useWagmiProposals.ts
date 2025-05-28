@@ -5,12 +5,73 @@
  * These hooks provide a similar interface to our existing proposals code
  * while leveraging wagmi's optimized React hooks under the hood.
  */
-
 import { useCallback } from 'react';
 import { useProposals, useVoteOnProposal, useExecuteProposal } from '@/hooks/useAssetDaoContract';
 import { useWagmiWallet } from './useWagmiWallet';
-import { Proposal, ProposalStatus } from '@/types';
+import { Proposal as ProposalType, ProposalStatus } from '@/types';
 import toast from 'react-hot-toast';
+import { useQuery } from '@tanstack/react-query';
+import { useAccount, useReadContract } from 'wagmi';
+import { formatEther } from 'viem';
+import { ASSET_DAO_ADDRESS, ASSET_DAO_ABI } from '@/config/contracts';
+
+interface Proposal {
+  id: number;
+  proposalType: number;
+  assetAddress: string;
+  amount: string;
+  description: string;
+  proposer: string;
+  createdAt: number;
+  votingEnds: number;
+  yesVotes: string;
+  noVotes: string;
+  status: number;
+  executed: boolean;
+}
+
+export const useWagmiProposals = () => {
+  const { address } = useAccount();
+
+  // Get proposal count
+  const { data: proposalCount, isLoading: isLoadingCount } = useReadContract({
+    address: ASSET_DAO_ADDRESS as `0x${string}`,
+    abi: ASSET_DAO_ABI,
+    functionName: 'getProposalCount',
+  });
+
+  // Fetch all proposals
+  const { data: proposals, isLoading: isLoadingProposals, error } = useQuery({
+    queryKey: ['wagmi-proposals', proposalCount],
+    queryFn: async () => {
+      if (!proposalCount || proposalCount === 0n) return [];
+
+      const proposalPromises = [];
+      for (let i = 1; i <= Number(proposalCount); i++) {
+        proposalPromises.push(
+          fetch(`/.netlify/functions/proposals?id=${i}`)
+            .then(res => res.json())
+            .catch(err => {
+              console.error(`Failed to fetch proposal ${i}:`, err);
+              return null;
+            })
+        );
+      }
+
+      const results = await Promise.all(proposalPromises);
+      return results.filter(Boolean) as Proposal[];
+    },
+    enabled: !!proposalCount && proposalCount > 0n,
+    staleTime: 30000, // 30 seconds
+  });
+
+  return {
+    proposals: proposals || [],
+    isLoading: isLoadingCount || isLoadingProposals,
+    error,
+    proposalCount: proposalCount ? Number(proposalCount) : 0,
+  };
+};
 
 /**
  * Hook for listing proposals with wagmi
@@ -19,7 +80,7 @@ export function useWagmiProposalList() {
   const { proposals, isLoading, error, totalCount, refetch } = useProposals({ limit: 10 });
   
   // Convert proposals to our app's format
-  const formattedProposals: Proposal[] = proposals.map(proposal => ({
+  const formattedProposals: ProposalType[] = proposals.map(proposal => ({
     id: proposal.id,
     title: `Proposal #${proposal.id}`,
     description: proposal.description,
@@ -154,3 +215,5 @@ function getTimeRemaining(endTime: Date): string {
     return `${hours}h ${minutes}m`;
   }
 }
+
+export default useWagmiProposals;
