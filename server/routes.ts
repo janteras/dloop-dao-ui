@@ -633,25 +633,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // API Config for environment variables
   app.get('/api/config', (req, res) => {
     try {
-      // Use explicit API keys instead of environment variables which might not be loaded properly
-      const infuraApiKey = "ca485bd6567e4c5fb5693ee66a5885d8"; // Infura Project ID
-      const walletConnectProjectId = "6f23ad7f41333ccb23a5b2b6d330509a"; // WalletConnect Project ID
+      // Use explicit API keys with fallbacks for reliability
+      const infuraApiKey = process.env.VITE_INFURA_API_KEY || "ca485bd6567e4c5fb5693ee66a5885d8";
+      const walletConnectProjectId = process.env.VITE_WALLETCONNECT_PROJECT_ID || "6f23ad7f41333ccb23a5b2b6d330509a";
 
       console.log("Sending API configuration to client:", { 
         infuraApiKey: infuraApiKey.substring(0, 5) + "...", 
-        walletConnectProjectId: walletConnectProjectId.substring(0, 5) + "..." 
+        walletConnectProjectId: walletConnectProjectId.substring(0, 5) + "...",
+        environment: process.env.NODE_ENV || 'development'
       });
 
-      // Send API keys to the client
+      // Send API keys to the client with cache headers
+      res.set({
+        'Cache-Control': 'public, max-age=300', // 5 minutes
+        'Content-Type': 'application/json'
+      });
+      
       res.json({
         infuraApiKey,
-        walletConnectProjectId
+        walletConnectProjectId,
+        environment: process.env.NODE_ENV || 'development'
       });
     } catch (error) {
       console.error('Error retrieving API config:', error);
       res.status(500).json({ 
         error: 'Failed to retrieve API configuration',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
       });
     }
   });

@@ -40,6 +40,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Link } from "wouter";
+import { getContract } from "@/lib/contracts";
 
 // Form validation schema
 const proposalFormSchema = z.object({
@@ -82,6 +83,7 @@ export function EnhancedProposalModal({ isOpen, onClose }: EnhancedProposalModal
   const [gasPrice, setGasPrice] = useState<string | null>(null);
 
   // Define supported tokens with their Sepolia testnet addresses
+  // These are configured to match the actual deployed token addresses on Sepolia
   // These are configured to match the actual deployed token addresses on Sepolia
   // IMPORTANT: According to business requirements, DLOOP should not be available for any proposal type
   const supportedTokens = [
@@ -288,7 +290,7 @@ export function EnhancedProposalModal({ isOpen, onClose }: EnhancedProposalModal
     if (!signer || !selectedToken || !proposalAmount) return;
 
     try {
-      const assetDAOContract = AssetDAOContract(signer);
+      const assetDAOContract = getContract('AssetDAO', signer);
       const token = supportedTokens.find(t => t.symbol === selectedToken);
 
       if (!token) return;
@@ -356,7 +358,7 @@ export function EnhancedProposalModal({ isOpen, onClose }: EnhancedProposalModal
 
       // For direct contract interaction
       if (signer) {
-        const assetDAOContract = AssetDAOContract(signer);
+        const assetDAOContract = getContract('AssetDAO', signer);
 
         // Prepare the proposal parameters
         const selectedToken = supportedTokens.find(t => t.symbol === form.getValues('token'));
@@ -803,7 +805,7 @@ export function EnhancedProposalModal({ isOpen, onClose }: EnhancedProposalModal
                         <SelectContent>
                           {availableTokens.map((token) => (
                             <SelectItem key={token.symbol} value={token.symbol}>
-                              <div className="flex items-center">
+                                                             <div className="flex items-center">
                                 <span>{token.symbol}</span>
                                 <Badge variant="outline" className="ml-2 text-xs">
                                   {shortenAddress(token.address) }

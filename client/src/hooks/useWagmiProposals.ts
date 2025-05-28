@@ -1,3 +1,4 @@
+
 /**
  * Wagmi Proposal Hooks
  * 
@@ -6,26 +7,24 @@
  * while leveraging wagmi's optimized React hooks under the hood.
  */
 import { useCallback } from 'react';
-import { useProposals, useVoteOnProposal, useExecuteProposal } from '@/hooks/useAssetDaoContract';
-import { useWagmiWallet } from './useWagmiWallet';
-import { Proposal as ProposalType, ProposalStatus } from '@/types';
-import toast from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
-import { useAccount, useReadContract } from 'wagmi';
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { formatEther } from 'viem';
 import { ASSET_DAO_ADDRESS, ASSET_DAO_ABI } from '@/config/contracts';
+import { Proposal as ProposalType, ProposalStatus } from '@/types';
+import toast from 'react-hot-toast';
 
-interface Proposal {
-  id: number;
+interface ContractProposal {
+  id: bigint;
   proposalType: number;
   assetAddress: string;
-  amount: string;
+  amount: bigint;
   description: string;
   proposer: string;
-  createdAt: number;
-  votingEnds: number;
-  yesVotes: string;
-  noVotes: string;
+  createdAt: bigint;
+  votingEnds: bigint;
+  yesVotes: bigint;
+  noVotes: bigint;
   status: number;
   executed: boolean;
 }
@@ -33,14 +32,14 @@ interface Proposal {
 export const useWagmiProposals = () => {
   const { address } = useAccount();
 
-  // Get proposal count
+  // Get proposal count from contract
   const { data: proposalCount, isLoading: isLoadingCount } = useReadContract({
     address: ASSET_DAO_ADDRESS as `0x${string}`,
     abi: ASSET_DAO_ABI,
     functionName: 'getProposalCount',
   });
 
-  // Fetch all proposals
+  // Fetch all proposals from contract
   const { data: proposals, isLoading: isLoadingProposals, error } = useQuery({
     queryKey: ['wagmi-proposals', proposalCount],
     queryFn: async () => {
@@ -49,7 +48,7 @@ export const useWagmiProposals = () => {
       const proposalPromises = [];
       for (let i = 1; i <= Number(proposalCount); i++) {
         proposalPromises.push(
-          fetch(`/.netlify/functions/proposals?id=${i}`)
+          fetch(`/api/proposals/${i}`)
             .then(res => res.json())
             .catch(err => {
               console.error(`Failed to fetch proposal ${i}:`, err);
@@ -59,7 +58,7 @@ export const useWagmiProposals = () => {
       }
 
       const results = await Promise.all(proposalPromises);
-      return results.filter(Boolean) as Proposal[];
+      return results.filter(Boolean) as ContractProposal[];
     },
     enabled: !!proposalCount && proposalCount > 0n,
     staleTime: 30000, // 30 seconds
@@ -77,29 +76,59 @@ export const useWagmiProposals = () => {
  * Hook for listing proposals with wagmi
  */
 export function useWagmiProposalList() {
-  const { proposals, isLoading, error, totalCount, refetch } = useProposals({ limit: 10 });
+  const { address } = useAccount();
+  
+  // Get proposal count
+  const { data: proposalCount } = useReadContract({
+    address: ASSET_DAO_ADDRESS as `0x${string}`,
+    abi: ASSET_DAO_ABI,
+    functionName: 'getProposalCount',
+  });
+
+  // Fetch proposals with proper contract integration
+  const { data: proposals, isLoading, error, refetch } = useQuery({
+    queryKey: ['proposal-list', proposalCount],
+    queryFn: async () => {
+      if (!proposalCount || proposalCount === 0n) return [];
+      
+      const proposalData = [];
+      for (let i = 1; i <= Number(proposalCount); i++) {
+        try {
+          const response = await fetch(`/api/proposals/${i}`);
+          if (response.ok) {
+            const proposal = await response.json();
+            proposalData.push(proposal);
+          }
+        } catch (error) {
+          console.error(`Error fetching proposal ${i}:`, error);
+        }
+      }
+      return proposalData;
+    },
+    enabled: !!proposalCount && proposalCount > 0n,
+  });
   
   // Convert proposals to our app's format
-  const formattedProposals: ProposalType[] = proposals.map(proposal => ({
+  const formattedProposals: ProposalType[] = (proposals || []).map(proposal => ({
     id: proposal.id,
     title: `Proposal #${proposal.id}`,
     description: proposal.description,
     proposer: proposal.proposer,
     type: proposal.proposalType === 0 ? 'invest' : 'divest',
-    token: proposal.tokenSymbol || 'ETH',
-    amount: Number(proposal.amount),
-    status: mapProposalState(proposal.state),
-    forVotes: proposal.forVotes,
-    againstVotes: proposal.againstVotes,
-    endsIn: proposal.votingEnds ? getTimeRemaining(proposal.votingEnds) : '',
-    endTimeISO: proposal.votingEnds?.toISOString(),
+    token: 'ETH', // Default token, should be determined from contract
+    amount: Number(formatEther(proposal.amount)),
+    status: mapProposalState(proposal.status),
+    forVotes: Number(formatEther(proposal.yesVotes)),
+    againstVotes: Number(formatEther(proposal.noVotes)),
+    endsIn: getTimeRemaining(new Date(Number(proposal.votingEnds) * 1000)),
+    endTimeISO: new Date(Number(proposal.votingEnds) * 1000).toISOString(),
   }));
   
   return {
     proposals: formattedProposals,
     isLoading,
     error: error ? String(error) : null,
-    totalCount,
+    totalCount: proposalCount ? Number(proposalCount) : 0,
     refetch,
   };
 }
@@ -108,19 +137,25 @@ export function useWagmiProposalList() {
  * Hook for voting on proposals with wagmi
  */
 export function useWagmiProposalVoting() {
-  const { castVote, isPending, isConfirming, error } = useVoteOnProposal();
-  const { isConnected } = useWagmiWallet();
+  const { address } = useAccount();
+  const { writeContract, isPending, error } = useWriteContract();
   
   const voteOnProposal = useCallback(async (proposalId: number, support: boolean) => {
-    if (!isConnected) {
+    if (!address) {
       toast.error('Please connect your wallet');
       throw new Error('Wallet not connected');
     }
     
     try {
-      await castVote(proposalId, support);
+      const hash = await writeContract({
+        address: ASSET_DAO_ADDRESS as `0x${string}`,
+        abi: ASSET_DAO_ABI,
+        functionName: 'vote',
+        args: [BigInt(proposalId), support],
+      });
+      
       toast.success(`Successfully voted ${support ? 'for' : 'against'} proposal ${proposalId}`);
-      return true;
+      return hash;
     } catch (error) {
       console.error('Error voting on proposal:', error);
       toast.error(
@@ -130,11 +165,11 @@ export function useWagmiProposalVoting() {
       );
       throw error;
     }
-  }, [isConnected, castVote]);
+  }, [address, writeContract]);
   
   return {
     voteOnProposal,
-    isVoting: isPending || isConfirming,
+    isVoting: isPending,
     error: error ? String(error) : null,
   };
 }
@@ -143,19 +178,25 @@ export function useWagmiProposalVoting() {
  * Hook for executing proposals with wagmi
  */
 export function useWagmiProposalExecution() {
-  const { executeProposal, isPending, isConfirming, error } = useExecuteProposal();
-  const { isConnected } = useWagmiWallet();
+  const { address } = useAccount();
+  const { writeContract, isPending, error } = useWriteContract();
   
   const execute = useCallback(async (proposalId: number) => {
-    if (!isConnected) {
+    if (!address) {
       toast.error('Please connect your wallet');
       throw new Error('Wallet not connected');
     }
     
     try {
-      await executeProposal(proposalId);
+      const hash = await writeContract({
+        address: ASSET_DAO_ADDRESS as `0x${string}`,
+        abi: ASSET_DAO_ABI,
+        functionName: 'executeProposal',
+        args: [BigInt(proposalId)],
+      });
+      
       toast.success(`Successfully executed proposal ${proposalId}`);
-      return true;
+      return hash;
     } catch (error) {
       console.error('Error executing proposal:', error);
       toast.error(
@@ -165,11 +206,11 @@ export function useWagmiProposalExecution() {
       );
       throw error;
     }
-  }, [isConnected, executeProposal]);
+  }, [address, writeContract]);
   
   return {
     executeProposal: execute,
-    isExecuting: isPending || isConfirming,
+    isExecuting: isPending,
     error: error ? String(error) : null,
   };
 }
@@ -179,15 +220,21 @@ export function useWagmiProposalExecution() {
  */
 function mapProposalState(state: number): ProposalStatus {
   switch (state) {
+    case 0: // Pending
+      return 'active';
     case 1: // Active
       return 'active';
-    case 3: // Succeeded
-      return 'passed';
-    case 2: // Defeated
-    case 6: // Expired
-    case 7: // Canceled
+    case 2: // Canceled
       return 'failed';
-    case 5: // Executed
+    case 3: // Defeated
+      return 'failed';
+    case 4: // Succeeded
+      return 'passed';
+    case 5: // Queued
+      return 'passed';
+    case 6: // Expired
+      return 'failed';
+    case 7: // Executed
       return 'executed';
     default:
       return 'active';

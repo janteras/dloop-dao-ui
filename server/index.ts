@@ -95,30 +95,39 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Use the PORT environment variable if available, or fall back to 5003
+  // Use the PORT environment variable if available, or fall back to 5002
   // This serves both the API and the client
-  const port = process.env.PORT ? parseInt(process.env.PORT) : 5003;
-  console.log(`Server configured to use port: ${port} (from env: ${process.env.PORT})`);
+  const basePort = process.env.PORT ? parseInt(process.env.PORT) : 5002;
+  console.log(`Server configured to use port: ${basePort} (from env: ${process.env.PORT})`);
 
-  // Avoid port conflicts with hardcoded values in other files
-  const hardcodedPort = 5003;
-  if (port === hardcodedPort) {
-    log(`WARNING: Using port ${hardcodedPort} which may conflict with other processes`);
-  }
+  let currentPort = basePort;
+  let retryCount = 0;
+  const maxRetries = 5;
 
   const startServer = () => {
+    if (retryCount >= maxRetries) {
+      log(`Failed to start server after ${maxRetries} attempts`);
+      return;
+    }
+
     try {
-      server.listen(port, "0.0.0.0", () => {
-        log(`serving on port ${port}`);
+      server.listen(currentPort, "0.0.0.0", () => {
+        log(`serving on port ${currentPort}`);
+        retryCount = 0; // Reset on success
       });
 
       server.on('error', (error: any) => {
         if (error.code === 'EADDRINUSE') {
-          log(`Port ${port} is busy, retrying...`);
+          retryCount++;
+          currentPort = basePort + retryCount;
+          log(`Port ${currentPort - 1} is busy, trying port ${currentPort} (attempt ${retryCount}/${maxRetries})`);
+          
           setTimeout(() => {
             server.close();
             startServer();
           }, 1000);
+        } else {
+          log(`Server error: ${error.message}`);
         }
       });
     } catch (err) {
