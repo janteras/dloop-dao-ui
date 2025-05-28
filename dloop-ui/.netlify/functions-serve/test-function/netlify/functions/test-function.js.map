@@ -1,8 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../../../../../Users/apple/Downloads/dloop-dao-ui/dloop-ui/netlify/functions/test-function.js"],
-  "sourceRoot": "/var/folders/k6/tfs_tx3s5fd5xc70ld8bcvlw0000gq/T/tmp-36172-NH04s0OSxKK0",
-  "sourcesContent": ["exports.handler = async (event, context) => {\n  return {\n    statusCode: 200,\n    headers: {\n      'Content-Type': 'application/json',\n      'Access-Control-Allow-Origin': '*'\n    },\n    body: JSON.stringify({ \n      message: 'Test function working successfully', \n      timestamp: new Date().toISOString() \n    })\n  };\n};\n"],
-  "mappings": ";;;AAAA,QAAQ,UAAU,OAAO,OAAO,YAAY;AAC1C,SAAO;AAAA,IACL,YAAY;AAAA,IACZ,SAAS;AAAA,MACP,gBAAgB;AAAA,MAChB,+BAA+B;AAAA,IACjC;AAAA,IACA,MAAM,KAAK,UAAU;AAAA,MACnB,SAAS;AAAA,MACT,YAAW,oBAAI,KAAK,GAAE,YAAY;AAAA,IACpC,CAAC;AAAA,EACH;AACF;",
-  "names": []
-}

@@ -1,0 +1,251 @@
+.proposalCard {
+  @apply w-full rounded-xl border border-border/30 bg-card/80 p-6 
+    shadow-md backdrop-blur-sm transition-all duration-300 ease-out
+    hover:shadow-xl hover:border-accent/40 hover:-translate-y-1 hover:bg-card/90
+    dark:bg-card/90 dark:border-border/20 dark:hover:border-accent/30
+    dark:hover:bg-card/95;
+}
+
+.proposalHeader {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.proposalTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--foreground);
+  line-height: 1.4;
+}
+
+.proposalDescription {
+  color: var(--muted-foreground);
+  line-height: 1.5;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.proposalMeta {
+  @apply grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6;
+}
+
+.metaItem {
+  @apply flex flex-col gap-1;
+}
+
+.metaLabel {
+  @apply text-xs font-medium text-muted-foreground/80
+    dark:text-muted-foreground/70;
+}
+
+.metaValue {
+  @apply text-sm font-semibold text-foreground/80
+    dark:text-foreground/90 group-hover:text-foreground/95
+    dark:group-hover:text-foreground/100 transition-colors duration-200;
+}
+
+.voteContainer {
+  @apply mt-6 space-y-3;
+}
+
+.voteProgress {
+  @apply relative h-2.5 rounded-full bg-muted/30 overflow-hidden
+    dark:bg-muted/20;
+}
+
+.voteBar {
+  @apply absolute left-0 top-0 h-full transition-all duration-500 ease-out;
+}
+
+.voteBarFor {
+  @apply bg-success shadow-sm
+    dark:bg-success/90;
+}
+
+.voteBarAgainst {
+  @apply bg-destructive shadow-sm
+    dark:bg-destructive/90;
+}
+
+.voteLabels {
+  @apply flex justify-between text-xs text-muted-foreground/90
+    dark:text-muted-foreground/80;
+}
+
+.actionButtons {
+  @apply flex gap-2 mt-6 justify-end;
+}
+
+.actionButton {
+  @apply transition-all duration-200 hover:scale-[1.02] active:scale-[0.98];
+}
+
+.badge {
+  @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium
+    transition-colors duration-200;
+}
+
+.badgeInvest {
+  @apply bg-success/15 text-success dark:text-success
+    border border-success/30 dark:border-success/40;
+}
+
+.badgeDivest {
+  @apply bg-warning/15 text-warning dark:text-warning
+    border border-warning/30 dark:border-warning/40;
+}
+
+.statusBadge {
+  @apply text-xs font-medium px-2.5 py-1 rounded-full transition-colors duration-200;
+}
+
+.statusBadge.active {
+  @apply bg-primary/15 text-primary border border-primary/30 
+    dark:bg-primary/20 dark:text-primary dark:border-primary/40;
+}
+
+.statusBadge.pending {
+  @apply bg-primary/15 text-primary border border-primary/30 
+    dark:bg-primary/20 dark:text-primary dark:border-primary/40;
+}
+
+.statusBadge.failed {
+  @apply bg-destructive/15 text-destructive border border-destructive/30 
+    dark:bg-destructive/20 dark:text-destructive dark:border-destructive/40;
+}
+
+.statusBadge.executed {
+  @apply bg-accent/15 text-accent border border-accent/30 
+    dark:bg-accent/20 dark:text-accent dark:border-accent/40;
+}
+
+.progressContainer {
+  @apply w-full px-0 my-2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.progressBar {
+  @apply h-2.5 w-full rounded-full;
+  max-width: 100%;
+}
+
+.progressPassed {
+  @apply bg-success/10 dark:bg-success/10
+    border border-success/20 dark:border-success/20;
+}
+
+.progressPassed [data-progress-indicator] {
+  @apply bg-success dark:bg-success/90
+    shadow-sm;
+}
+
+.progressFailed {
+  @apply bg-destructive/10 dark:bg-destructive/10
+    border border-destructive/20 dark:border-destructive/20;
+}
+
+.progressFailed [data-progress-indicator] {
+  @apply bg-destructive dark:bg-destructive/90
+    shadow-sm;
+}
+
+.progressActive {
+  @apply bg-primary/10 dark:bg-primary/10
+    border border-primary/20 dark:border-primary/20;
+}
+
+.progressActive [data-progress-indicator] {
+  @apply bg-primary dark:bg-primary/90
+    shadow-sm;
+}
+
+.warningMessage {
+  @apply text-xs text-warning dark:text-warning mt-2 mb-2 
+    flex items-center justify-center gap-2 px-3 py-2 rounded-lg
+    bg-warning/15 dark:bg-warning/10 border border-warning/30
+    dark:border-warning/20 backdrop-blur-sm;
+  width: 100%;
+}
+
+.voteButton {
+  @apply px-4 py-2 rounded-md font-medium transition-all duration-200
+    bg-primary text-primary-foreground hover:bg-primary/90
+    dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90;
+}
+
+.voteButtonSecondary {
+  @apply px-4 py-2 rounded-md font-medium transition-all duration-200
+    bg-secondary text-secondary-foreground hover:bg-secondary/90
+    dark:bg-secondary dark:text-secondary-foreground dark:hover:bg-secondary/90;
+}
+
+.votingLabel {
+  @apply text-sm text-muted-foreground;
+}
+
+.votingCount {
+  @apply text-xs text-muted-foreground;
+}
+
+.warningText {
+  @apply text-xs text-warning dark:text-warning mt-2 
+    flex items-center justify-center gap-2 px-3 py-2 rounded-lg
+    bg-warning/15 dark:bg-warning/10 border border-warning/30
+    dark:border-warning/20 backdrop-blur-sm;
+}
+
+.voteProgressFull {
+  @apply w-full space-y-4;
+}
+
+.voteProgressItem {
+  @apply w-full;
+}
+
+.voteProgressBar {
+  @apply relative h-3 bg-muted/20 rounded-full overflow-hidden w-full;
+}
+
+.progressBarFull {
+  @apply col-span-full w-full;
+}
+
+.votingProgressSection {
+  @apply col-span-full w-full space-y-4;
+}
+
+.progressBarContainer {
+  @apply -mx-6 px-6 w-full;
+}
+
+.errorMessage {
+  @apply text-sm text-destructive dark:text-destructive mt-2 font-medium
+    px-3 py-2 rounded-lg bg-destructive/15 dark:bg-destructive/10 
+    border border-destructive/30 dark:border-destructive/20 backdrop-blur-sm;
+}
+
+.toastMessage {
+  @apply text-sm font-medium text-foreground dark:text-foreground;
+}
+
+.proposalAmount {
+  @apply text-lg font-bold bg-gradient-to-r from-foreground to-foreground/80
+    bg-clip-text text-transparent dark:from-foreground dark:to-foreground/90;
+}
+
+.tokenSymbol {
+  @apply text-base font-semibold text-accent/90 dark:text-accent/95
+    group-hover:text-accent dark:group-hover:text-accent transition-colors duration-200;
+}
+
+.addressDisplay {
+  @apply text-sm font-mono text-foreground/80 dark:text-foreground/85;
+}
+
+.timeRemaining {
+  @apply text-sm text-foreground/75 dark:text-foreground/85 flex items-center gap-2 font-medium;
+}
