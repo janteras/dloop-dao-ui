@@ -10,7 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useWalletClient, usePublicClient } from 'wagmi';
 import { formatEther } from 'viem';
 import { CONTRACT_ADDRESSES } from '@/config/contracts';
-import { ASSET_DAO_ABI } from '@/abi/AssetDAO';
+import AssetDAOABI from '@/abis/assetdao.abi.v1.json';
 
 const ASSET_DAO_ADDRESS = CONTRACT_ADDRESSES.AssetDAO;
 import { Proposal as ProposalType, ProposalStatus } from '@/types';
@@ -37,7 +37,7 @@ export const useWagmiProposals = () => {
   // Get proposal count from contract
   const { data: proposalCount, isLoading: isLoadingCount } = useReadContract({
     address: ASSET_DAO_ADDRESS as `0x${string}`,
-    abi: ASSET_DAO_ABI,
+    abi: AssetDAOABI,
     functionName: 'getProposalCount',
   });
 
@@ -83,7 +83,7 @@ export function useWagmiProposalList() {
   // Get proposal count
   const { data: proposalCount } = useReadContract({
     address: ASSET_DAO_ADDRESS as `0x${string}`,
-    abi: ASSET_DAO_ABI,
+    abi: AssetDAOABI,
     functionName: 'getProposalCount',
   });
 
@@ -151,7 +151,7 @@ export function useWagmiProposalVoting() {
     try {
       const hash = await writeContract({
         address: ASSET_DAO_ADDRESS as `0x${string}`,
-        abi: ASSET_DAO_ABI,
+        abi: AssetDAOABI,
         functionName: 'vote',
         args: [BigInt(proposalId), support],
       });
@@ -184,7 +184,7 @@ export const useWagmiProposalExecution = () => {
   const { data: publicClient } = usePublicClient();
   const [isExecuting, setIsExecuting] = useState(false);
   const contractAddress = ASSET_DAO_ADDRESS;
-  const assetDaoABI = ASSET_DAO_ABI;
+  const assetDaoABI = AssetDAOABI;
 
   const checkExecutionReadiness = async (proposalId: number) => {
     if (!publicClient) return { canExecute: false, reason: "No public client" };
@@ -287,18 +287,9 @@ export const useWagmiProposalExecution = () => {
 
     setIsExecuting(true);
     try {
-      // First check if proposal can be executed
-      const { canExecute, reason } = await checkExecutionReadiness(proposalId);
-
-      if (!canExecute) {
-        toast.error(`Cannot execute proposal: ${reason}`);
-        return;
-      }
-
-      // Execute the proposal
-      const hash = await walletClient.writeContract({
+      const hash = await writeContract({
         address: contractAddress as `0x${string}`,
-        abi: assetDaoABI,
+        abi: AssetDAOABI,
         functionName: 'executeProposal',
         args: [BigInt(proposalId)],
       });
