@@ -26,7 +26,7 @@ export const TokenDelegationService = {
       
       // Validate delegatee isn't the sender (contract guard condition)
       if (delegatee.toLowerCase() === walletAddress.toLowerCase()) {
-        throw new Error('Cannot delegate to yourself');
+        throw new Error('Cannot delegate to yourself. Please select a different AI node.');
       }
       
       // Check if we're in development mode

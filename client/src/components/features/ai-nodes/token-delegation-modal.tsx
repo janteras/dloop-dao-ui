@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { useWallet } from '@/hooks/useWallet';
 import { useToast } from '@/hooks/use-toast';
 import { useEthers } from '@/contexts/EthersContext';
 import { getContract, getReadOnlyContract } from '@/lib/contracts';
 import { contracts } from '@/config/contracts';
+import { useTokenInfo } from '@/hooks/useTokenInfo';
 import { 
   Dialog,
   DialogContent,
@@ -55,17 +56,27 @@ export function TokenDelegationModal({
   const { isConnected, address, balance } = useWallet();
   const { provider, signer } = useEthers();
   const { toast } = useToast();
+  const { availableBalance, isLoading: tokenInfoLoading } = useTokenInfo();
   const [amount, setAmount] = useState<string>('100');
   const [percentage, setPercentage] = useState<number>(10);
   const [loading, setLoading] = useState<boolean>(false);
   const [delegatedAmount, setDelegatedAmount] = useState<string | null>(null);
+  const [dloopBalance, setDloopBalance] = useState<string>('0');
   
+  // Update DLOOP balance when availableBalance changes
+  useEffect(() => {
+    if (availableBalance && !tokenInfoLoading) {
+      setDloopBalance(availableBalance);
+    }
+  }, [availableBalance, tokenInfoLoading]);
+
   // Handle percentage change from slider
   const handlePercentageChange = (newPercentage: number[]) => {
     const pct = newPercentage[0];
     setPercentage(pct);
-    if (balance && typeof balance === 'number' && balance > 0) {
-      const calculatedAmount = ((pct / 100) * balance).toFixed(2);
+    const dloopBalanceNumber = parseFloat(dloopBalance);
+    if (dloopBalanceNumber > 0) {
+      const calculatedAmount = ((pct / 100) * dloopBalanceNumber).toFixed(2);
       setAmount(calculatedAmount);
     }
   };
@@ -76,8 +87,9 @@ export function TokenDelegationModal({
     // Only allow numeric input with decimal point
     if (/^(\d+\.?\d*|\.\d+)$/.test(value) || value === '') {
       setAmount(value);
-      if (balance && typeof balance === 'number' && balance > 0 && value !== '') {
-        const pct = Math.min(100, (parseFloat(value) * 100) / balance);
+      const dloopBalanceNumber = parseFloat(dloopBalance);
+      if (dloopBalanceNumber > 0 && value !== '') {
+        const pct = Math.min(100, (parseFloat(value) * 100) / dloopBalanceNumber);
         setPercentage(pct);
       }
     }
@@ -126,6 +138,27 @@ export function TokenDelegationModal({
       toast({
         title: "Invalid Amount",
         description: "Please enter a valid amount to delegate.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Prevent self-delegation
+    if (address && node.address.toLowerCase() === address.toLowerCase()) {
+      toast({
+        title: "Invalid Delegation",
+        description: "You cannot delegate tokens to yourself. Please select a different AI node.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate DLOOP balance
+    const dloopBalanceNumber = parseFloat(dloopBalance);
+    if (amountValue > dloopBalanceNumber) {
+      toast({
+        title: "Insufficient Balance",
+        description: `You only have ${dloopBalanceNumber.toFixed(2)} DLOOP tokens available. Please enter a lower amount.`,
         variant: "destructive"
       });
       return;
@@ -221,7 +254,14 @@ export function TokenDelegationModal({
         
         // Wait for transaction confirmation
         if (tx) {
-          await tx.wait();
+          const receipt = await tx.wait();
+          console.log("Transaction confirmed:", receipt);
+          
+          // Show success message with transaction hash
+          toast({
+            title: "Transaction Confirmed",
+            description: `Delegation confirmed! Transaction: ${tx.hash.slice(0, 10)}...`,
+          });
         } else {
           throw new Error("Transaction failed to be created");
         }
@@ -242,6 +282,11 @@ export function TokenDelegationModal({
         
         // Handle specific contract error scenarios
         if (contractError.message.includes('execution reverted')) {
+          // Check for specific error codes
+          if (contractError.data === '0xef99396c') {
+            throw new Error('Delegation failed: You cannot delegate to yourself or this operation is not allowed.');
+          }
+          
           // Format a better error message for execution revert
           let errorDetail = 'The contract rejected the transaction.';
           
@@ -251,6 +296,8 @@ export function TokenDelegationModal({
             errorDetail = 'Insufficient balance to complete this delegation.';
           } else if (contractError.message.includes('gas required exceeds allowance')) {
             errorDetail = 'Transaction requires more gas than the network allows.';
+          } else if (contractError.receipt && contractError.receipt.status === 0) {
+            errorDetail = 'Transaction was rejected by the blockchain. This may be due to invalid delegation parameters.';
           }
           
           throw new Error(`Delegation failed: ${errorDetail}`);
@@ -435,8 +482,9 @@ export function TokenDelegationModal({
                     variant="secondary" 
                     size="sm" 
                     onClick={() => {
-                      if (balance) {
-                        setAmount(balance.toString());
+                      const dloopBalanceNumber = parseFloat(dloopBalance);
+                      if (dloopBalanceNumber > 0) {
+                        setAmount(dloopBalance);
                         setPercentage(100);
                       }
                     }}

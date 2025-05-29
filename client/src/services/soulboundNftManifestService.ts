@@ -70,6 +70,11 @@ export class SoulboundNftManifestService {
         } catch (corsError) {
           // In development mode, silently use fallback data without console errors
           console.log('Development mode - Using fallback SoulboundNFT manifest');
+        
+        // In development, we can still show a user-friendly message
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('NFT metadata unavailable due to CORS. Using mock data for development.');
+        }
           return this.getFallbackManifest();
         }
       } else {

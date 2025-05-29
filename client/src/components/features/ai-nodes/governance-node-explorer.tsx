@@ -42,7 +42,7 @@ export function GovernanceNodeExplorer() {
   const [expandedNodes, setExpandedNodes] = useState<string[]>([]);
   const [nodeOwnership] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
-  
+
   // Animation variants
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -96,9 +96,9 @@ export function GovernanceNodeExplorer() {
         >
           <Brain size={40} className="text-primary/70" />
         </motion.div>
-        
+
         <Skeleton className="h-12 w-full mb-6" />
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <Skeleton key={i} className="h-64 w-full rounded-lg" />
@@ -125,20 +125,20 @@ export function GovernanceNodeExplorer() {
                 All Nodes
               </TabsTrigger>
             </motion.div>
-            
+
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <TabsTrigger value="delegated" className="text-sm md:text-base">
                 My Delegations
               </TabsTrigger>
             </motion.div>
-            
+
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <TabsTrigger value="owned" className="text-sm md:text-base">
                 My Nodes
               </TabsTrigger>
             </motion.div>
           </TabsList>
-        
+
         <TabsContent value="all" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {nodes?.map((node: AINode, index: number) => (
@@ -167,7 +167,7 @@ export function GovernanceNodeExplorer() {
                       </Badge>
                     </div>
                   </CardHeader>
-                  
+
                   <CardContent className="pt-4">
                     <div className="space-y-3 mb-3">
                       <div className="flex justify-between items-center">
@@ -182,7 +182,7 @@ export function GovernanceNodeExplorer() {
                         </span>
                         <span className="font-medium">{node.responseTime}</span>
                       </div>
-                      
+
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-muted-foreground flex items-center gap-1.5">
                           <BarChart3 size={14} /> Accuracy
@@ -193,7 +193,7 @@ export function GovernanceNodeExplorer() {
                         </div>
                       </div>
                     </div>
-                    
+
                     {expandedNodes.includes(node.id) && (
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
@@ -222,7 +222,7 @@ export function GovernanceNodeExplorer() {
                       </motion.div>
                     )}
                   </CardContent>
-                  
+
                   <CardFooter className="flex justify-between pt-0">
                     <Button 
                       variant="ghost" 
@@ -231,7 +231,7 @@ export function GovernanceNodeExplorer() {
                     >
                       {expandedNodes.includes(node.id) ? 'Less Info' : 'More Info'}
                     </Button>
-                    
+
                     <Button 
                       size="sm" 
                       onClick={() => handleDelegateClick(node)}
@@ -256,7 +256,7 @@ export function GovernanceNodeExplorer() {
             ))}
           </div>
         </TabsContent>
-        
+
         <TabsContent value="delegated" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {nodes?.filter((node: AINode) => delegatedNodes.includes(node.id)).length > 0 ? (
@@ -286,7 +286,7 @@ export function GovernanceNodeExplorer() {
                         </Badge>
                       </div>
                     </CardHeader>
-                    
+
                     <CardContent className="pt-4">
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
@@ -312,7 +312,7 @@ export function GovernanceNodeExplorer() {
                         </div>
                       </div>
                     </CardContent>
-                    
+
                     <CardFooter className="pt-0">
                       <Button 
                         variant="outline" 
@@ -352,7 +352,7 @@ export function GovernanceNodeExplorer() {
             )}
           </div>
         </TabsContent>
-        
+
         <TabsContent value="owned" className="space-y-6">
           <div className="col-span-1 md:col-span-2 lg:col-span-3 p-8 text-center bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-800">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
@@ -365,7 +365,7 @@ export function GovernanceNodeExplorer() {
           </div>
         </TabsContent>
       </Tabs>
-      
+
       {/* Token Delegation Modal */}
       {selectedNode && (
         <TokenDelegationModal
@@ -383,4 +383,22 @@ export function GovernanceNodeExplorer() {
       )}
     </div>
   );
+
+  // Handle opening token delegation modal
+  const handleOpenTokenDelegationModal = (node: AINode) => {
+    console.log('Opening delegation modal for node:', node);
+
+    // Validate node has required data
+    if (!node.address || node.address === '0x0000000000000000000000000000000000000000') {
+      toast({
+        title: "Invalid Node",
+        description: "This AI node doesn't have a valid address for delegation.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSelectedNode(node);
+    setTokenDelegationOpen(true);
+  };
 }
