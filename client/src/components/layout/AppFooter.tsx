@@ -15,7 +15,7 @@ interface AppFooterProps {
 
 export function AppFooter({ className }: AppFooterProps) {
   const currentYear = new Date().getFullYear();
-  
+
   const links: FooterLink[] = [
     { 
       name: "Whitepaper", 
@@ -76,10 +76,10 @@ export function AppFooter({ className }: AppFooterProps) {
               <span className="ml-3 text-lg font-semibold tracking-tight">D-LOOP</span>
             </div>
             <p className="text-sm text-muted-foreground text-center md:text-left max-w-xs">
-              A decentralized governance protocol for AI-powered financial instruments
+              A decentralized Treasury DAO protocol for AI-powered financial instruments
             </p>
           </div>
-          
+
           {/* Links Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
             {links.map((link) => (
@@ -105,13 +105,13 @@ export function AppFooter({ className }: AppFooterProps) {
             ))}
           </div>
         </div>
-        
+
         {/* Bottom Section */}
         <div className="mt-8 pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center">
           <p className="text-sm text-muted-foreground mb-4 sm:mb-0">
             &copy; {currentYear} D-LOOP Protocol. All rights reserved.
           </p>
-          
+
           <div className="flex items-center gap-4">
             <a 
               href="https://d-loop.io/terms" 

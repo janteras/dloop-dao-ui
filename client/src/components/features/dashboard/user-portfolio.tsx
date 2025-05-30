@@ -25,7 +25,7 @@ const defaultPortfolio: PortfolioData = {
 export function UserPortfolio({ portfolio = defaultPortfolio }: { portfolio?: PortfolioData }) {
   const { isRageQuitting, rageQuit } = useWallet();
   const { toast } = useToast();
-  
+
   const handleRageQuit = async () => {
     try {
       await rageQuit();
@@ -57,7 +57,7 @@ export function UserPortfolio({ portfolio = defaultPortfolio }: { portfolio?: Po
             </div>
             <span className="font-semibold text-xl">${formatNumber(portfolio.dloopBalance + portfolio.daiBalance, 2)}</span>
           </div>
-          
+
           <div className="space-y-1">
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center justify-between rounded-lg border p-3">
@@ -72,7 +72,7 @@ export function UserPortfolio({ portfolio = defaultPortfolio }: { portfolio?: Po
                 </div>
                 <ArrowUpRight className="h-4 w-4 text-green-500" />
               </div>
-              
+
               <div className="flex items-center justify-between rounded-lg border p-3">
                 <div className="flex items-center gap-2">
                   <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -88,7 +88,7 @@ export function UserPortfolio({ portfolio = defaultPortfolio }: { portfolio?: Po
             </div>
           </div>
         </div>
-        
+
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -96,7 +96,7 @@ export function UserPortfolio({ portfolio = defaultPortfolio }: { portfolio?: Po
               <span className="font-medium">Delegations & Rewards</span>
             </div>
           </div>
-          
+
           <div className="space-y-1">
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center justify-between rounded-lg border p-3">
@@ -105,7 +105,7 @@ export function UserPortfolio({ portfolio = defaultPortfolio }: { portfolio?: Po
                   <div className="font-medium">{formatNumber(portfolio.delegatedDloop)} DLOOP</div>
                 </div>
               </div>
-              
+
               <div className="flex items-center justify-between rounded-lg border p-3">
                 <div>
                   <div className="text-xs text-muted-foreground">Pending Rewards</div>
@@ -128,7 +128,7 @@ export function UserPortfolio({ portfolio = defaultPortfolio }: { portfolio?: Po
             {isRageQuitting ? 'Processing...' : 'Rage Quit'}
           </Button>
         </div>
-        
+
         <div className="w-full">
           <Button 
             variant="secondary" 

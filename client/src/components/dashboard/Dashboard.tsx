@@ -63,7 +63,7 @@ const Dashboard = () => {
     <section className="page-transition">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-        
+
         {/* Action Buttons */}
         <div className="flex space-x-3">
           <Button
@@ -82,7 +82,7 @@ const Dashboard = () => {
           </Button>
         </div>
       </div>
-      
+
       {/* Portfolio Value */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <Card>
@@ -98,7 +98,7 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <h2 className="text-lg font-medium text-gray mb-4">D-AI Holdings</h2>
@@ -111,7 +111,7 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <h2 className="text-lg font-medium text-gray mb-4">Governance Rewards</h2>
@@ -125,7 +125,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
-      
+
       {/* Asset Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <Card className="lg:col-span-2">
@@ -156,7 +156,7 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-6">
             <h2 className="text-lg font-medium text-gray mb-4">Active Proposals</h2>
@@ -177,7 +177,7 @@ const Dashboard = () => {
                   </div>
                 </div>
               ))}
-              
+
               <Link href="/assetdao" className="block text-center text-accent text-sm mt-4 hover:underline">
                 View All Proposals
               </Link>

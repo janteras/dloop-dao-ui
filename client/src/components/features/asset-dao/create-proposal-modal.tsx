@@ -69,7 +69,7 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
   const [transactionHash, setTransactionHash] = useState<string | null>(null);
   // Use a union literal type directly to prevent TypeScript comparison issues
   const [step, setStep] = useState<'form' | 'submitting' | 'confirmation'>('form');
-  
+
   // Define supported tokens with their Sepolia testnet addresses
   // These are configured to match the actual deployed token addresses on Sepolia
   const supportedTokens = [
@@ -79,7 +79,7 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
     { symbol: "USDC", address: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238", supportedTypes: ["invest", "divest"] }, // Sepolia USDC
     { symbol: "WBTC", address: "0xCA063A2AB07491eE991dCecb456D1265f842b568", supportedTypes: ["invest", "divest"] }  // Sepolia WBTC
   ];
-  
+
   // Log available token addresses for debugging
   useEffect(() => {
     console.log('Available tokens for proposals:', supportedTokens);
@@ -97,7 +97,7 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
       duration: "3",
     },
   });
-  
+
   // Watch proposal type to filter available tokens
   const proposalType = form.watch("type");
 
@@ -126,28 +126,28 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
       // For direct contract interaction
       if (signer) {
         const assetDAOContract = AssetDAOContract(signer);
-        
+
         // Prepare the proposal parameters
         const selectedToken = supportedTokens.find(t => t.symbol === data.token);
-        
+
         if (!selectedToken) {
           throw new Error("Invalid token selected");
         }
-        
+
         // Check if this token is supported for the selected proposal type
         if (!selectedToken.supportedTypes.includes(data.type)) {
           throw new Error(`${data.token} is not supported for ${data.type === 'invest' ? 'investment' : 'divestment'} proposals. DLOOP tokens can only be used in divestment proposals.`);
         }
-        
+
         const tokenAddress = selectedToken.address;
-        
+
         // Log the parameters for debugging
         console.log('Creating proposal with params:', {
           description: `${data.title}\n\n${data.description}`,
           tokenAddress,
           amount: data.amount
         });
-        
+
         // Convert amount to wei format for blockchain
         // Check if we're using the correct decimals based on token type
         // Different tokens have different decimal places
@@ -162,12 +162,12 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
           // Default to 18 decimals for other tokens
           amountInWei = ethers.parseEther(data.amount);
         }
-        
+
         console.log(`Converting ${data.amount} ${data.token} to wei: ${amountInWei.toString()}`);
-        
+
         // Create the proposal on-chain using the correct method based on proposal type
         let tx;
-        
+
         // Format description to be shorter and more concise for blockchain storage
         // This helps avoid potential issues with gas costs or string size limits
         let descriptionText = data.title; 
@@ -177,12 +177,12 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
           const truncatedDescription = data.description.length > maxDescriptionLength 
             ? data.description.substring(0, maxDescriptionLength) + "..." 
             : data.description;
-          
+
           descriptionText = `${data.title}\n\n${truncatedDescription}`;
         }
-        
+
         console.log('Final proposal description:', descriptionText);
-        
+
         try {
           // Check balance and approval for the selected token
           if (data.type === 'invest') {
@@ -200,49 +200,49 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
                 ],
                 signer
               );
-              
+
               // First check if the user has sufficient token balance
               const balance = await tokenContract.balanceOf(address);
               console.log(`User balance for ${data.token}:`, ethers.formatUnits(balance, await tokenContract.decimals()));
-              
+
               if (balance < amountInWei) {
                 throw new Error(`Insufficient ${data.token} balance. You need ${data.amount} ${data.token} to create this proposal.`);
               }
-              
+
               // Then check if the AssetDAO contract has sufficient allowance
               const currentAllowance = await tokenContract.allowance(address, ADDRESSES.AssetDAO);
               console.log('Current allowance:', ethers.formatUnits(currentAllowance, await tokenContract.decimals()));
-              
+
               // If the allowance is less than the amount needed, approve it
               if (currentAllowance < amountInWei) {
                 console.log('Approving tokens for AssetDAO contract...');
-                
+
                 // Display a helpful message to the user
                 toast({
                   title: "Token Approval Required",
                   description: `Approving ${data.amount} ${data.token} for use by the AssetDAO contract. Please confirm this transaction in your wallet.`,
                 });
-                
+
                 const approveTx = await tokenContract.approve(
                   ADDRESSES.AssetDAO,
                   amountInWei,
                   { gasLimit: 300000 }
                 );
-                
+
                 // Wait for approval transaction to be mined
                 setTransactionHash(approveTx.hash);
-                
+
                 toast({
                   title: "Approval Transaction Submitted",
                   description: `Your approval transaction has been submitted. Waiting for confirmation...`,
                 });
-                
+
                 const approvalReceipt = await approveTx.wait();
-                
+
                 if (approvalReceipt.status === 0) {
                   throw new Error("Token approval transaction failed");
                 }
-                
+
                 console.log('Token approval successful');
                 toast({
                   title: "Token Approval Successful",
@@ -251,7 +251,7 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
               }
             } catch (approvalError: any) {
               console.error('Error with token balance or approval:', approvalError);
-              
+
               // Inform the user about the specific issue
               if (approvalError.message.includes("insufficient")) {
                 throw new Error(`You don't have enough ${data.token} tokens for this proposal.`);
@@ -262,12 +262,12 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
               }
             }
           }
-          
+
           // Define transaction options with explicitly higher gas limit to avoid estimation issues
           const txOptions = {
             gasLimit: 1000000, // Explicit higher gas limit
           };
-          
+
           if (data.type === 'invest') {
             // For invest proposals
             console.log('Calling createInvestProposal with:', {
@@ -276,7 +276,7 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
               amountInWei: amountInWei.toString(),
               txOptions
             });
-            
+
             tx = await assetDAOContract.createInvestProposal(
               descriptionText,
               tokenAddress,
@@ -291,7 +291,7 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
               amountInWei: amountInWei.toString(),
               txOptions
             });
-            
+
             tx = await assetDAOContract.createDivestProposal(
               descriptionText,
               tokenAddress,
@@ -301,10 +301,10 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
           }
         } catch (contractError: any) {
           console.error('Contract interaction error:', contractError);
-          
+
           // Provide more detailed error info
           const errorMessage = contractError.message || 'Unknown contract error';
-          
+
           // Enhanced error logging for contract debugging
           console.log('Full contract error details:', {
             message: contractError.message,
@@ -316,7 +316,7 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
             receipt: contractError.receipt,
             transaction: contractError.transaction
           });
-          
+
           // Handle different types of errors more specifically
           if (errorMessage.includes('missing revert data')) {
             // This is typically a silent revert from the contract - check if user has permission
@@ -328,7 +328,7 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
             // Try to extract the reason from the error if available
             const reasonMatch = errorMessage.match(/reason="([^"]+)"/);
             const reason = reasonMatch ? reasonMatch[1] : 'Unknown reason';
-            
+
             // Check for common governance errors in the reason text
             if (reason.includes("not enough voting power") || reason.toLowerCase().includes("insufficient")) {
               throw new Error(
@@ -356,22 +356,22 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
           } else if (errorMessage.includes('network changed') || errorMessage.includes('chain') || errorMessage.includes('network')) {
             throw new Error("Network connection issue. Please make sure you're connected to Sepolia testnet.");
           }
-          
+
           throw contractError;
         }
-        
+
         // Show transaction hash immediately
         setTransactionHash(tx.hash);
-        
+
         // Wait for transaction confirmation with better error handling
         try {
           const receipt = await tx.wait();
-          
+
           // Check if transaction was successful
           if (receipt.status === 0) {
             throw new Error("Transaction failed on the blockchain");
           }
-          
+
           // Update UI for success
           setStep('confirmation');
           console.log("Transaction confirmed with receipt:", receipt);
@@ -379,13 +379,13 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
           console.error("Transaction failed during confirmation:", receiptError);
           throw new Error("Transaction was mined but failed. Please check Etherscan for details.");
         }
-        
+
         // Show success toast
         toast({
           title: "Proposal Created Successfully",
           description: `Your ${data.type} proposal for ${data.amount} ${data.token} has been created.`,
         });
-        
+
         // Also create it in our database for UI purposes
         await createProposal({
           title: data.title,
@@ -399,7 +399,7 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
     } catch (error: any) {
       setStep('form');
       setError(error.message || "Failed to create proposal. Please try again.");
-      
+
       toast({
         title: "Error Creating Proposal",
         description: error.message || "An unexpected error occurred",
@@ -407,7 +407,7 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
       });
     }
   };
-  
+
   // If not connected, show a warning
   if (!isConnected && step === 'form') {
     return (
@@ -419,7 +419,7 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
               You need to connect your wallet to create a proposal.
             </DialogDescription>
           </DialogHeader>
-          
+
           <Alert variant="destructive" className="bg-destructive/20 border-destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Not Connected</AlertTitle>
@@ -427,7 +427,7 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
               Please connect your wallet to the Sepolia testnet to continue.
             </AlertDescription>
           </Alert>
-          
+
           <DialogFooter>
             <Button onClick={handleClose}>Close</Button>
           </DialogFooter>
@@ -447,10 +447,10 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
               Your proposal is being submitted to the blockchain.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4 flex flex-col items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            
+
             {transactionHash ? (
               <Alert variant="default" className="bg-primary/20 border-primary">
                 <AlertTitle>Transaction Submitted</AlertTitle>
@@ -468,7 +468,7 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
             ) : (
               <p className="text-sm text-gray">Please confirm the transaction in your wallet...</p>
             )}
-            
+
             <p className="text-sm text-gray">
               This may take a minute. Please don't close this window.
             </p>
@@ -489,7 +489,7 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
               Your proposal has been successfully submitted to the blockchain.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <Alert variant="default" className="bg-green-600/20 border-green-600">
               <AlertTitle>Transaction Confirmed</AlertTitle>
@@ -504,12 +504,12 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
                 </a>
               </AlertDescription>
             </Alert>
-            
+
             <p className="text-sm text-gray">
               Your proposal will now be available for voting. You can track its status on the proposals page.
             </p>
           </div>
-          
+
           <DialogFooter>
             <Button onClick={handleClose}>Close</Button>
           </DialogFooter>
@@ -528,7 +528,7 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
             Submit a proposal to {form.watch("type") === "invest" ? "add assets to" : "remove assets from"} the DAO.
           </DialogDescription>
         </DialogHeader>
-        
+
         <Alert variant="default" className="bg-primary/10 border-primary/20">
           <InfoIcon className="h-4 w-4" />
           <AlertTitle>Important Information</AlertTitle>
@@ -540,7 +540,7 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
             }
           </AlertDescription>
         </Alert>
-        
+
         {error && (
           <Alert variant="destructive" className="bg-destructive/20 border-destructive">
             <AlertCircle className="h-4 w-4" />
@@ -548,7 +548,7 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
@@ -570,7 +570,7 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="description"
@@ -591,7 +591,7 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
                 </FormItem>
               )}
             />
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -622,7 +622,7 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="token"
@@ -655,7 +655,7 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
                 )}
               />
             </div>
-            
+
             <FormField
               control={form.control}
               name="amount"
@@ -686,7 +686,7 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="duration"
@@ -716,7 +716,7 @@ export function CreateProposalModal({ isOpen, onClose }: CreateProposalModalProp
                 </FormItem>
               )}
             />
-            
+
             <DialogFooter className="pt-4 border-t border-[hsl(var(--border))]">
               <Button
                 type="button"

@@ -12,7 +12,7 @@ const AppHeader = () => {
 
   const navItems = [
     { name: "Dashboard", path: "/" },
-    { name: "AssetDAO", path: "/assetdao" },
+    { name: "Treasury DAO", path: "/assetdao" },
     { name: "Leaderboard", path: "/leaderboard" },
     { name: "AI Nodes", path: "/ainodes" },
     { name: "ProtocolDAO", path: "/protocoldao" },
@@ -48,7 +48,7 @@ const AppHeader = () => {
           </svg>
           <span className="ml-3 text-xl font-semibold">d-loop</span>
         </div>
-        
+
         {/* Navigation (Desktop) */}
         <nav className="hidden lg:flex space-x-6">
           {navItems.map((item) => (
@@ -67,13 +67,13 @@ const AppHeader = () => {
             </Link>
           ))}
         </nav>
-        
+
         {/* Connect Wallet Button / Account and Theme Toggle */}
         <div className="flex items-center gap-3 mt-4 sm:mt-0">
           <ThemeToggle variant="mini" className="mr-1" />
           <ConnectButton />
         </div>
-        
+
         {/* Mobile Menu Button */}
         <button 
           className="lg:hidden ml-4 focus:outline-none"
@@ -84,7 +84,7 @@ const AppHeader = () => {
           </svg>
         </button>
       </div>
-      
+
       {/* Mobile Navigation */}
       <div className={`lg:hidden px-4 py-3 border-t ${isMenuOpen ? 'block' : 'hidden'}`}>
         <nav className="flex flex-col space-y-3">
@@ -103,7 +103,7 @@ const AppHeader = () => {
               </a>
             </Link>
           ))}
-          
+
           {/* Theme toggle in mobile menu */}
           <div className="flex items-center justify-between py-2 border-t mt-2">
             <span className="text-muted-foreground">Theme</span>

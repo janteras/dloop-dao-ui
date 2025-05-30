@@ -217,14 +217,14 @@ export function ProposalExplorer() {
     }
   }
 
-  
+
 
   // If wallet is not connected, show wallet connect banner
   if (!isConnected) {
     return (
       <div className="w-full space-y-6">
         <div className="flex flex-col sm:flex-row justify-between gap-4">
-          <h2 className="text-2xl font-bold text-white">Asset DAO Proposals</h2>
+          <h2 className="text-2xl font-bold text-white">Treasury Proposals</h2>
         </div>
         <WalletConnectBanner />
       </div>
@@ -237,7 +237,7 @@ export function ProposalExplorer() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold relative inline-block group">
-            Asset DAO Proposals
+            Treasury Proposals
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent/80 transition-all duration-500 group-hover:w-full"></span>
           </h2>
           <p className="text-gray group-hover:text-gray/90 transition-colors duration-300">View, vote, and create proposals to optimize the D-AI reserve pool.</p>

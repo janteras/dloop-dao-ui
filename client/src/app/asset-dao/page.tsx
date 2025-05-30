@@ -18,18 +18,18 @@ export default function AssetDAOPage() {
   return (
     <DashboardLayout>
       <PageHeader
-        title="Asset DAO (Deprecated)"
-        description="This page is deprecated. Please use the main AssetDAO page."
+        title="Treasury DAO (Deprecated)"
+        description="This page is deprecated. Please use the main Treasury DAO page."
         actions={
           <Button className="flex items-center gap-2" disabled>
             <Plus size={16} />
-            <span>Use Main AssetDAO Page</span>
+            <span>Use Main Treasury DAO Page</span>
           </Button>
         }
       />
       <div className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
         <p className="text-yellow-800 dark:text-yellow-200">
-          ⚠️ This page is deprecated. Please navigate to the main AssetDAO page for the latest features and functionality.
+          ⚠️ This page is deprecated. Please navigate to the main Treasury DAO page for the latest features and functionality.
         </p>
       </div>
     </DashboardLayout>

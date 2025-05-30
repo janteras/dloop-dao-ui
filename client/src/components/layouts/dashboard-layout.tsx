@@ -19,7 +19,7 @@ import { useAppConfig } from '@/config/app-config';
 // Navigation items ordered according to UX feature hierarchy priority
 const navItems = [
   { name: 'Dashboard', href: '/' },
-  { name: 'Asset DAO', href: '/asset-dao', priority: 1 },
+  { name: 'Treasury DAO', href: '/assetdao', priority: 1 },
   { name: 'Delegations', href: '/delegations', priority: 2 },
   { name: 'Leaderboard', href: '/leaderboard', priority: 3 },
   { name: 'AI Nodes', href: '/ai-nodes', priority: 4 },

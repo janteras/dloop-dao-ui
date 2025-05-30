@@ -65,8 +65,8 @@ function App() {
                 <Suspense fallback={<div className="page-loading">Loading...</div>}>
                   <Switch>
                     <Route path="/" component={Dashboard} />
-                    <Route path="/asset-dao" component={AssetDAO} />
-                    <Route path="/asset-dao/proposal/:id" component={AssetDAO} />
+                    <Route path="/assetdao" component={AssetDAO} />
+                    <Route path="/assetdao/proposal/:id" component={AssetDAO} />
                     <Route path="/delegations" component={Delegations} />
                     <Route path="/leaderboard" component={Leaderboard} />
                     <Route path="/ai-nodes" component={AINodes} />

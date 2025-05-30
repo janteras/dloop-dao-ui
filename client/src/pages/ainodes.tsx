@@ -50,7 +50,7 @@ function AIAnalytics() {
           All data is sourced on-chain from protocol activity.
         </p>
       </div>
-      
+
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {statsData.map((stat, index) => (
@@ -72,7 +72,7 @@ function AIAnalytics() {
           </Card>
         ))}
       </div>
-      
+
       {/* Performance Metrics */}
       <Card>
         <CardHeader>
@@ -107,7 +107,7 @@ function AIAnalytics() {
           </div>
         </CardContent>
       </Card>
-      
+
       {/* Proposal Categories */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
@@ -135,7 +135,7 @@ function AIAnalytics() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>Delegation Activity</CardTitle>
@@ -165,10 +165,10 @@ function AIAnalytics() {
 export default function AINodesPage() {
   const [location] = useLocation();
   const { isConnected } = useWallet();
-  
+
   // Check if we're on a node detail page
   const isNodeDetail = location.startsWith('/ai-nodes/') && location.split('/').length === 3;
-  
+
   if (isNodeDetail) {
     const nodeId = location.split('/').pop();
     return (
@@ -179,7 +179,7 @@ export default function AINodesPage() {
       </PageContainer>
     );
   }
-  
+
   // Otherwise show the enhanced AI node explorer with tabs
   return (
     <PageContainer>
@@ -194,7 +194,7 @@ export default function AINodesPage() {
           <ThemeToggle variant="animated" />
         </div>
       </div>
-      
+
       <Tabs 
         defaultValue="explorer" 
         className="w-full"
@@ -210,15 +210,15 @@ export default function AINodesPage() {
             <ShieldCheck className="h-4 w-4 mr-2" /> Soulbound Identity
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="explorer" className="space-y-8">
           <GovernanceNodeExplorer />
         </TabsContent>
-        
+
         <TabsContent value="analytics">
           <AIAnalytics />
         </TabsContent>
-        
+
         <TabsContent value="soulbound">
           <SoulboundManager />
         </TabsContent>

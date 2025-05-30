@@ -6,7 +6,7 @@
  * It uses the factory pattern to dynamically select the appropriate implementation.
  */
 
-import { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { createImplementationComponent, TelemetryData } from '@/components/common/factory';
 import { useFeatureFlag } from '@/config/feature-flags';
 import ProposalCard from '@/components/assetdao/ProposalCard';
@@ -22,7 +22,7 @@ import toast from 'react-hot-toast';
  * UnifiedProposalCard implementation that uses the factory pattern
  * to switch between Ethers and Wagmi implementations
  */
-export function UnifiedProposalCard({
+export const UnifiedProposalCard = React.memo(function UnifiedProposalCard({
   proposal,
   implementation = 'ethers', // Provide a default implementation to fix undefined issues
   onActionComplete,
@@ -111,8 +111,8 @@ export function UnifiedProposalCard({
       await voteOnProposal({ proposalId, support });
 
       // Call both action complete and refresh callbacks
-      if (onActionComplete) onActionComplete();
-      if (onRefresh) onRefresh();
+      onActionComplete?.();
+      onRefresh?.();
     } catch (error) {
       console.error('Vote failed:', error);
       toast.error('Failed to vote on proposal');
@@ -126,7 +126,7 @@ export function UnifiedProposalCard({
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Call both action complete and refresh callbacks
-      if (onActionComplete) onActionComplete();
+      onActionComplete?.();
       if (onRefresh) {
         onRefresh();
         handleRefresh();
@@ -143,11 +143,11 @@ export function UnifiedProposalCard({
     onVote: handleVote,
     onExecute: handleExecute,
     onActionComplete: () => {
-      if (onActionComplete) onActionComplete();
-      if (onRefresh) onRefresh();
+      onActionComplete?.();
+      onRefresh?.();
     },
     expanded,
-    className
+    className: `${className || ''} touch-manipulation select-none`.trim()
   };
 
   // Determine which component to render based on implementation
@@ -156,19 +156,25 @@ export function UnifiedProposalCard({
   // Render the appropriate implementation with proper error boundaries
   if (isWagmiImplementation) {
     return (
-      <WagmiProposalCard
-        {...unifiedProps}
-        forceImplementation={implementation}
-      />
+      <div role="article" aria-label={`Proposal ${proposal.id}: ${proposal.type}`}>
+        <WagmiProposalCard
+          {...unifiedProps}
+          forceImplementation={implementation}
+        />
+      </div>
     );
   } else {
     return (
-      <ProposalCard
-        {...unifiedProps}
-        forceImplementation={implementation}
-      />
+      <div role="article" aria-label={`Proposal ${proposal.id}: ${proposal.type}`}>
+        <ProposalCard
+          {...unifiedProps}
+          forceImplementation={implementation}
+        />
+      </div>
     );
   }
 };
+
+});
 
 export default UnifiedProposalCard;
