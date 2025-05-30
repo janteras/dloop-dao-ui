@@ -101,7 +101,7 @@ export function BlockchainVerification() {
         {/* Contract Status */}
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <h3 className="text-sm font-medium">AssetDAO Contract</h3>
+            <h3 className="text-sm font-medium">TreasuryDAO Contract</h3>
             <div className="flex items-center gap-2">
               <p className="text-xs text-gray-500">
                 {getContractAddress('AssetDAO').slice(0, 6)}...{getContractAddress('AssetDAO').slice(-4)}

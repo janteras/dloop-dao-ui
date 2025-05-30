@@ -99,7 +99,7 @@ export default function GovernanceOverview() {
             </div>
             <div className="flex gap-2">
               <Link to="/asset-dao">
-                <Button variant="outline" size="sm" className="transition-all duration-200 hover:bg-primary/10 hover:border-primary">Asset DAO</Button>
+                <Button variant="outline" size="sm" className="transition-all duration-200 hover:bg-primary/10 hover:border-primary">Treasury DAO</Button>
               </Link>
               <Link to="/protocol-dao">
                 <Button variant="outline" size="sm" className="transition-all duration-200 hover:bg-primary/10 hover:border-primary">Protocol DAO</Button>
@@ -218,7 +218,7 @@ export default function GovernanceOverview() {
                         variant="outline" 
                         className="bg-muted/30 transition-all duration-300 group-hover:bg-primary/5 group-hover:border-primary/20"
                       >
-                        {proposal.type === 'asset-dao' ? 'Asset DAO' : 'Protocol DAO'}
+                        {proposal.type === 'asset-dao' ? 'Treasury DAO' : 'Protocol DAO'}
                       </Badge>
                     </div>
                     
